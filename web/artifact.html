@@ -851,10 +851,13 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
         </div>
       </div>
 
-      <div class="rules-actions">
-        <span class="saved-msg" id="r-saved-msg">Saved.</span>
-        <button class="btn ghost" id="r-revert">Discard changes</button>
-        <button class="btn" id="r-save">Save rules</button>
+      <div class="rules-actions" style="justify-content:space-between">
+        <button class="btn ghost" id="rw-open">+ Create rule with AI wizard</button>
+        <div style="display:flex;gap:10px;align-items:center">
+          <span class="saved-msg" id="r-saved-msg">Saved.</span>
+          <button class="btn ghost" id="r-revert">Discard changes</button>
+          <button class="btn" id="r-save">Save rules</button>
+        </div>
       </div>
     </div>
   </div>
@@ -893,11 +896,39 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
           <div class="kpi"><div class="v" id="rk-docs">-</div><div class="l">Documents uploaded</div></div>
           <div class="kpi"><div class="v" id="rk-events">-</div><div class="l">Events logged</div></div>
         </div>
-        <p class="muted" style="font-size:12px;margin-top:14px">
-          Pass 2 will replace this card with the regression tables, override-rate analysis, employee
-          flag-risk ranking, event study around rule changes, parallel-trends test, and institutional
-          efficiency ratios. The data infrastructure (events, treatments, documents) is already in place.
-        </p>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+          <button class="btn small ghost" id="r-seed-btn">Seed demo data</button>
+        </div>
+      </div>
+
+      <div class="algo-card">
+        <h3>1. Override-rate analysis</h3>
+        <p class="muted" style="font-size:12px">How often the auditor overrides a previous classification. High rates mean the AI / employee process and the auditor disagree a lot - either trust is low or the policy is unclear.</p>
+        <div id="r-override-tables"></div>
+      </div>
+
+      <div class="algo-card">
+        <h3>2. Employee flag-risk ranking (logistic-style score)</h3>
+        <p class="muted" style="font-size:12px">Each employee scored on how often their classified expenses end up RED (or get downgraded by an auditor). Top of the list = highest risk.</p>
+        <div id="r-employee-rank"></div>
+      </div>
+
+      <div class="algo-card">
+        <h3>3. Event study - effect of rule changes</h3>
+        <p class="muted" style="font-size:12px">For each rule-change event, compares the average flag/override rate in the 30 days before vs the 30 days after. A negative Delta means the rule reduced anomalies.</p>
+        <div id="r-event-study"></div>
+      </div>
+
+      <div class="algo-card">
+        <h3>4. Parallel-trends test (treatment vs control)</h3>
+        <p class="muted" style="font-size:12px">For each experimental treatment, compares the change in flag rate from pre- to post- treatment in the targeted group vs everyone else (control). The Diff-in-Diff column estimates the treatment effect.</p>
+        <div id="r-parallel-trends"></div>
+      </div>
+
+      <div class="algo-card">
+        <h3>5. Institutional efficiency indicators</h3>
+        <p class="muted" style="font-size:12px">Charter-school operational metrics computed from the audit log + program roster.</p>
+        <div id="r-indicators"></div>
       </div>
     </div>
 
@@ -938,16 +969,18 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
 
     <div id="rtab-treatments" style="display:none">
       <div class="algo-card">
-        <h3>Experimental treatments</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h3 style="margin:0">Experimental treatments</h3>
+          <button class="btn small" id="r-new-treatment-btn">+ New treatment</button>
+        </div>
         <p class="muted" style="font-size:12px;margin-bottom:14px">
           Apply a new rule to a subset of requesters/departments (or a random sample) and compare
-          their behaviour to a control group. The full treatment-vs-control assignment UI ships in
-          Pass 2; this tab currently lists treatments created by the API.
+          their behaviour to a control group via the parallel-trends table on the Overview tab.
         </p>
         <div style="max-height:520px;overflow:auto">
           <table class="research-table">
-            <thead><tr><th>Started</th><th>Name</th><th>Target</th><th>Notes</th></tr></thead>
-            <tbody id="treatments-tbody"><tr><td colspan="4" class="empty">Loading...</td></tr></tbody>
+            <thead><tr><th>Started</th><th>Name</th><th>Target</th><th>Notes</th><th></th></tr></thead>
+            <tbody id="treatments-tbody"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -957,21 +990,10 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
       <div class="algo-card">
         <h3>Institutional efficiency indicators</h3>
         <p class="muted" style="font-size:12px;margin-bottom:14px">
-          Indicators relevant to a charter-school operator: cost-per-student by category, percentage
-          of spend going to direct instruction, audit cycle time, etc. Pass 2 will compute these from
-          the event log and a small student-roster mock dataset.
+          Computed from the event log and the bundled program roster. Click "Seed demo data" on the
+          Overview tab if these are blank.
         </p>
-        <table class="research-table">
-          <thead><tr><th>Indicator</th><th>Current value</th><th>Notes</th></tr></thead>
-          <tbody id="indicators-tbody">
-            <tr><td>Spend per student (annualised)</td><td>(Pass 2)</td><td>Total flagged + cleared $ divided by student headcount</td></tr>
-            <tr><td>% spend on direct instruction</td><td>(Pass 2)</td><td>Salaries + classroom materials / total spend</td></tr>
-            <tr><td>Anomaly catch rate (true RED / total flagged)</td><td>(Pass 2)</td><td>Quality of the detector</td></tr>
-            <tr><td>Audit cycle time (median hours pending → resolved)</td><td>(Pass 2)</td><td>Operational efficiency</td></tr>
-            <tr><td>Override rate (auditor overrides / total classified)</td><td>(Pass 2)</td><td>Trust in the AI</td></tr>
-            <tr><td>Per-department flag concentration (Herfindahl)</td><td>(Pass 2)</td><td>Are flags clustering in one team?</td></tr>
-          </tbody>
-        </table>
+        <div id="r-indicators-full"></div>
       </div>
     </div>
   </div>
@@ -1086,6 +1108,83 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
     <div class="actions">
       <button class="btn ghost" id="reset-cancel">Cancel</button>
       <button class="btn" id="reset-save">Reset password</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create treatment modal (researcher) -->
+<div class="modal-bg" id="treatment-modal">
+  <div class="modal" style="max-width:600px">
+    <h3>New experimental treatment</h3>
+    <div class="sub">Pick a target group and the rule changes that should apply only to that group. The rest of the population becomes your control.</div>
+    <div class="field">
+      <label>Treatment name</label>
+      <input id="t-name" type="text" placeholder="e.g. Q3 Equipment hard cap pilot" />
+    </div>
+    <div class="field">
+      <label>Target group type</label>
+      <select id="t-target-type">
+        <option value="departments">Specific departments</option>
+        <option value="requesters">Specific requesters</option>
+        <option value="random_pct">Random N% of all requesters</option>
+      </select>
+    </div>
+    <div class="field" id="t-target-input-wrap">
+      <label id="t-target-label">Department names (comma-separated)</label>
+      <input id="t-target-input" type="text" placeholder="Marketing, Sales" />
+    </div>
+    <div class="field">
+      <label>Rule additions (free-form, optional - the parallel-trends test only needs the assignment)</label>
+      <textarea id="t-rule" rows="3" placeholder='{"new_auto_red_keywords": ["upgrade","resort"]}'></textarea>
+    </div>
+    <div class="field">
+      <label>Notes</label>
+      <input id="t-notes" type="text" placeholder="Why are you running this?" />
+    </div>
+    <div class="err" id="t-err" style="display:none;background:#fee2e2;border:1px solid #fecaca;color:#991b1b;padding:8px 10px;border-radius:6px;font-size:13px;margin-bottom:10px"></div>
+    <div class="actions">
+      <button class="btn ghost" id="t-cancel">Cancel</button>
+      <button class="btn" id="t-save">Create treatment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Auditor rule-creation wizard (admin) -->
+<div class="modal-bg" id="rule-wizard-modal">
+  <div class="modal" style="max-width:640px">
+    <h3>Create new business rule (AI-guided)</h3>
+    <div class="sub">Describe the audit strategy you want this rule to enforce. The wizard will ask a few clarifying questions, then propose a candidate rule for you to accept.</div>
+
+    <div id="rw-step-strategy">
+      <div class="field">
+        <label>Your strategy</label>
+        <textarea id="rw-strategy" rows="4" placeholder='e.g. "Catch employees who try to circumvent the $5,000 approval threshold by submitting two $3K invoices for the same vendor in the same week."'></textarea>
+      </div>
+      <div class="actions">
+        <button class="btn ghost" id="rw-cancel">Cancel</button>
+        <button class="btn" id="rw-start">Start interview</button>
+      </div>
+    </div>
+
+    <div id="rw-step-interview" style="display:none">
+      <div id="rw-history" style="max-height:280px;overflow:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+      <div id="rw-options-wrap" class="w-options" style="display:none;margin-bottom:8px"></div>
+      <textarea id="rw-answer" rows="2" placeholder="Your answer..." style="width:100%;font:inherit;font-size:13px;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px"></textarea>
+      <div class="actions" style="margin-top:10px">
+        <button class="btn ghost" id="rw-cancel-2">Close</button>
+        <button class="btn" id="rw-send">Send</button>
+      </div>
+    </div>
+
+    <div id="rw-step-propose" style="display:none">
+      <div class="sub" style="background:#dcfce7;border:1px solid #bbf7d0;color:#166534;padding:10px 12px;border-radius:8px;margin-bottom:14px">
+        Proposed rule additions
+      </div>
+      <pre id="rw-proposal" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:10px;font-size:12px;max-height:280px;overflow:auto;white-space:pre-wrap"></pre>
+      <div class="actions">
+        <button class="btn ghost" id="rw-discard">Discard</button>
+        <button class="btn" id="rw-accept">Accept and apply</button>
+      </div>
     </div>
   </div>
 </div>
@@ -3651,6 +3750,472 @@ document.getElementById("nu-create").addEventListener("click", function(){
     }
   });
 })();
+
+// =============================================================
+//  Researcher analytics (Pass 2): five tables
+// =============================================================
+let _researchData = { events: [], treatments: [], roster: [] };
+
+async function loadResearchData() {
+  try {
+    const [e, t, r] = await Promise.all([
+      authFetch("/api/events?limit=5000").then(r => r.json()),
+      authFetch("/api/treatments").then(r => r.json()),
+      authFetch("/api/roster").then(r => r.json()),
+    ]);
+    _researchData.events = e.events || [];
+    _researchData.treatments = t.treatments || [];
+    _researchData.roster = r.roster || [];
+  } catch (err) {
+    console.error("loadResearchData failed", err);
+  }
+}
+
+function _payload(ev) { try { return ev.payload || {}; } catch { return {}; } }
+
+function tablize(headers, rows, opts = {}) {
+  const align = opts.align || {};
+  const head = headers.map((h, i) => `<th${align[i] === 'right' ? ' style="text-align:right"' : ''}>${escapeHtml(h)}</th>`).join("");
+  const body = rows.length
+    ? rows.map(r => "<tr>" + r.map((c, i) => `<td${align[i] === 'right' ? ' style="text-align:right"' : ''}>${typeof c === 'string' ? c : escapeHtml(String(c))}</td>`).join("") + "</tr>").join("")
+    : `<tr><td colspan="${headers.length}" class="empty">No data yet. Click "Seed demo data" on the Overview tab to populate.</td></tr>`;
+  return `<table class="research-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+function pctFmt(n) { return Number.isFinite(n) ? (n * 100).toFixed(1) + "%" : "-"; }
+function numFmt(n, d = 1) { return Number.isFinite(n) ? n.toFixed(d) : "-"; }
+
+// 1. Override rate analysis - by department, requester, category
+function analyseOverrideRate() {
+  const overrides = _researchData.events.filter(e => e.event_type === "override");
+  const classifications = _researchData.events.filter(e => e.event_type === "wizard_classification");
+  // group counts
+  const byDept = {}, byReq = {}, byCat = {};
+  for (const e of classifications) {
+    const p = _payload(e);
+    if (p.department) (byDept[p.department] ||= { c: 0, o: 0 }).c++;
+    if (p.requester)  (byReq[p.requester]   ||= { c: 0, o: 0 }).c++;
+    if (p.category)   (byCat[p.category]    ||= { c: 0, o: 0 }).c++;
+  }
+  for (const e of overrides) {
+    const p = _payload(e);
+    if (p.department) (byDept[p.department] ||= { c: 0, o: 0 }).o++;
+    if (p.requester)  (byReq[p.requester]   ||= { c: 0, o: 0 }).o++;
+    if (p.category)   (byCat[p.category]    ||= { c: 0, o: 0 }).o++;
+  }
+  const tableFor = (label, obj) => {
+    const rows = Object.entries(obj)
+      .map(([k, v]) => [k, v.c, v.o, v.c > 0 ? v.o / v.c : 0])
+      .sort((a, b) => b[3] - a[3])
+      .map(r => [r[0], r[1], r[2], pctFmt(r[3])]);
+    return `<h4 style="font-size:12px;margin:14px 0 6px;color:#374151">${label}</h4>` +
+      tablize(["Group", "Classifications", "Overrides", "Override rate"], rows, { align: { 1: "right", 2: "right", 3: "right" } });
+  };
+  return tableFor("By department", byDept) + tableFor("By requester", byReq) + tableFor("By category", byCat);
+}
+
+// 2. Employee flag-risk ranking - share of their own classifications that ended RED, plus override rate against them
+function analyseEmployeeRanking() {
+  const reqs = {};
+  for (const e of _researchData.events) {
+    const p = _payload(e);
+    if (!p.requester) continue;
+    reqs[p.requester] ||= { total: 0, red: 0, yellow: 0, green: 0, overrides_to_red: 0, overrides_total: 0, dept: p.department || "?" };
+    if (e.event_type === "wizard_classification") {
+      reqs[p.requester].total++;
+      if (p.flag === "RED") reqs[p.requester].red++;
+      if (p.flag === "YELLOW") reqs[p.requester].yellow++;
+      if (p.flag === "GREEN") reqs[p.requester].green++;
+    } else if (e.event_type === "override") {
+      reqs[p.requester].overrides_total++;
+      if (p.to === "RED") reqs[p.requester].overrides_to_red++;
+    }
+  }
+  const rows = Object.entries(reqs).map(([name, r]) => {
+    const redRate = r.total > 0 ? r.red / r.total : 0;
+    // simple risk score: RED rate * 0.6 + override-to-RED rate * 0.4
+    const overrideToRedRate = r.overrides_total > 0 ? r.overrides_to_red / r.overrides_total : 0;
+    const risk = redRate * 0.6 + overrideToRedRate * 0.4;
+    return [name, r.dept, r.total, r.red, pctFmt(redRate), pctFmt(overrideToRedRate), numFmt(risk, 3)];
+  }).sort((a, b) => parseFloat(b[6]) - parseFloat(a[6]));
+  return tablize(
+    ["Requester", "Department", "Classifications", "RED count", "RED rate", "% overrides → RED", "Risk score"],
+    rows,
+    { align: { 2: "right", 3: "right", 4: "right", 5: "right", 6: "right" } }
+  );
+}
+
+// 3. Event study around rule_change events - 30 days before vs 30 days after
+function analyseEventStudy() {
+  const ruleChanges = _researchData.events.filter(e => e.event_type === "rule_change").sort((a, b) => a.occurred_at - b.occurred_at);
+  if (!ruleChanges.length) return tablize(["Date","Rule label","Pre-30d flag rate","Post-30d flag rate","Δ"], []);
+  const allClass = _researchData.events.filter(e => e.event_type === "wizard_classification");
+  const rows = ruleChanges.map(rc => {
+    const t0 = rc.occurred_at;
+    const window = 30 * 86400;
+    const pre = allClass.filter(e => e.occurred_at >= t0 - window && e.occurred_at < t0);
+    const post = allClass.filter(e => e.occurred_at > t0 && e.occurred_at <= t0 + window);
+    const flagRate = arr => arr.length ? arr.filter(e => _payload(e).flag !== "GREEN").length / arr.length : NaN;
+    const pre_rate = flagRate(pre);
+    const post_rate = flagRate(post);
+    const delta = post_rate - pre_rate;
+    return [
+      new Date(t0 * 1000).toLocaleDateString(),
+      _payload(rc).label || "(unlabeled)",
+      pre.length + " obs / " + pctFmt(pre_rate),
+      post.length + " obs / " + pctFmt(post_rate),
+      Number.isFinite(delta) ? (delta > 0 ? "+" : "") + (delta * 100).toFixed(1) + " pp" : "-",
+    ];
+  });
+  return tablize(["Date","Rule change","Pre-30d","Post-30d","Δ (RED+YELLOW rate)"], rows, { align: { 2: "right", 3: "right", 4: "right" } });
+}
+
+// 4. Parallel trends - for each treatment, treatment-group vs control-group flag rate change
+function analyseParallelTrends() {
+  if (!_researchData.treatments.length) return tablize(["Treatment","Pre Δtreat","Post Δtreat","Pre Δctrl","Post Δctrl","Diff-in-Diff"], []);
+  const allClass = _researchData.events.filter(e => e.event_type === "wizard_classification");
+  const window = 30 * 86400;
+  const rows = _researchData.treatments.map(t => {
+    const t0 = t.started_at;
+    const tgt = t.target_group || {};
+    const inGroup = (p) => {
+      if (Array.isArray(tgt.departments)) return tgt.departments.includes(p.department);
+      if (Array.isArray(tgt.requesters))  return tgt.requesters.includes(p.requester);
+      if (typeof tgt.random_pct === "number") {
+        // deterministic fake assignment based on hash(seed + requester)
+        const seed = (tgt.seed || 0).toString();
+        const h = (p.requester || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+        return ((h + seed.length) % 100) < tgt.random_pct;
+      }
+      return false;
+    };
+    const flagRate = arr => arr.length ? arr.filter(e => _payload(e).flag !== "GREEN").length / arr.length : NaN;
+    const pre  = allClass.filter(e => e.occurred_at >= t0 - window && e.occurred_at < t0);
+    const post = allClass.filter(e => e.occurred_at > t0 && e.occurred_at <= t0 + window);
+    const treatPre  = pre.filter(e => inGroup(_payload(e)));
+    const ctrlPre   = pre.filter(e => !inGroup(_payload(e)));
+    const treatPost = post.filter(e => inGroup(_payload(e)));
+    const ctrlPost  = post.filter(e => !inGroup(_payload(e)));
+    const tPre  = flagRate(treatPre);
+    const tPost = flagRate(treatPost);
+    const cPre  = flagRate(ctrlPre);
+    const cPost = flagRate(ctrlPost);
+    const did = (tPost - tPre) - (cPost - cPre);
+    return [
+      t.name,
+      pctFmt(tPre),
+      pctFmt(tPost),
+      pctFmt(cPre),
+      pctFmt(cPost),
+      Number.isFinite(did) ? (did > 0 ? "+" : "") + (did * 100).toFixed(1) + " pp" : "-",
+    ];
+  });
+  return tablize(
+    ["Treatment", "Treat (pre)", "Treat (post)", "Control (pre)", "Control (post)", "Diff-in-Diff"],
+    rows,
+    { align: { 1: "right", 2: "right", 3: "right", 4: "right", 5: "right" } }
+  );
+}
+
+// 5. Institutional indicators
+function analyseIndicators() {
+  const cls = _researchData.events.filter(e => e.event_type === "wizard_classification");
+  const overrides = _researchData.events.filter(e => e.event_type === "override");
+  const totalSpend = cls.reduce((s, e) => s + (_payload(e).amount || 0), 0);
+  const redSpend = cls.filter(e => _payload(e).flag === "RED").reduce((s, e) => s + (_payload(e).amount || 0), 0);
+  const totalStudents = (_researchData.roster || []).reduce((s, r) => s + (r.student_count || 0), 0);
+  const totalAdjustedDirect = (_researchData.roster || []).reduce((s, r) => s + (r.student_count || 0) * (r.direct_instruction_share || 0), 0);
+  const directRatio = totalStudents > 0 ? totalAdjustedDirect / totalStudents : NaN;
+  const spendPerStudent = totalStudents > 0 ? totalSpend / totalStudents : NaN;
+  const overrideRate = cls.length > 0 ? overrides.length / cls.length : NaN;
+  // Herfindahl: sum of squared shares of flags by department
+  const flagsByDept = {};
+  for (const e of cls) {
+    const p = _payload(e);
+    if (p.flag !== "GREEN" && p.department) flagsByDept[p.department] = (flagsByDept[p.department] || 0) + 1;
+  }
+  const totalFlags = Object.values(flagsByDept).reduce((a, b) => a + b, 0);
+  const herfindahl = totalFlags > 0
+    ? Object.values(flagsByDept).reduce((a, b) => a + (b / totalFlags) ** 2, 0)
+    : NaN;
+
+  const rows = [
+    ["Spend per student (annualised)", spendPerStudent ? "$" + Math.round(spendPerStudent).toLocaleString() : "-",
+     "Sum of classified $ divided by total student headcount across programs"],
+    ["% spend on direct instruction", pctFmt(directRatio),
+     "Weighted by program direct-instruction share from the roster"],
+    ["Total $ at risk (RED)", "$" + Math.round(redSpend).toLocaleString(),
+     "Sum of amounts on RED-flagged classifications in the period"],
+    ["Override rate", pctFmt(overrideRate),
+     "Auditor overrides / total classifications. High = AI/employee disagree with auditor."],
+    ["Per-department flag concentration (Herfindahl)", numFmt(herfindahl, 3),
+     "Closer to 1.0 = flags clustered in one department; closer to 0 = evenly spread"],
+    ["Total classifications", cls.length, "Volume metric"],
+    ["Total auditor overrides", overrides.length, "Volume metric"],
+    ["Document uploads logged", _researchData.events.filter(e => e.event_type === "document_upload").length, "How often employees back claims with receipts"],
+  ];
+  return tablize(["Indicator", "Value", "Notes"], rows);
+}
+
+async function renderAllAnalytics() {
+  await loadResearchData();
+  $("#r-override-tables").innerHTML = analyseOverrideRate();
+  $("#r-employee-rank").innerHTML = analyseEmployeeRanking();
+  $("#r-event-study").innerHTML = analyseEventStudy();
+  $("#r-parallel-trends").innerHTML = analyseParallelTrends();
+  $("#r-indicators").innerHTML = analyseIndicators();
+  $("#r-indicators-full").innerHTML = analyseIndicators();
+}
+
+// override the existing renderResearcherOverview to also paint analytics
+const _origRenderOverview = renderResearcherOverview;
+renderResearcherOverview = async function() {
+  await _origRenderOverview();
+  await renderAllAnalytics();
+};
+
+// Seed-demo button
+const rSeedBtn = document.getElementById("r-seed-btn");
+if (rSeedBtn) {
+  rSeedBtn.addEventListener("click", async () => {
+    rSeedBtn.disabled = true;
+    rSeedBtn.innerHTML = `<span class="spinner"></span> Seeding...`;
+    try {
+      const r = await authFetch("/api/seed-mock-data", { method: "POST" });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+      toast(`Seeded: ${j.events || 0} events, ${j.treatments || 0} treatments, ${j.rosters || 0} programs.`);
+      await renderAllAnalytics();
+      await renderResearcherOverview();
+    } catch (e) {
+      toast("Seed failed: " + e.message);
+    } finally {
+      rSeedBtn.disabled = false;
+      rSeedBtn.textContent = "Seed demo data";
+    }
+  });
+}
+
+// =============================================================
+//  Treatment creation modal
+// =============================================================
+const tBtn = document.getElementById("r-new-treatment-btn");
+if (tBtn) tBtn.addEventListener("click", () => document.getElementById("treatment-modal").classList.add("show"));
+document.getElementById("t-cancel").addEventListener("click", () => document.getElementById("treatment-modal").classList.remove("show"));
+
+document.getElementById("t-target-type").addEventListener("change", (e) => {
+  const v = e.target.value;
+  const lbl = document.getElementById("t-target-label");
+  const inp = document.getElementById("t-target-input");
+  if (v === "departments") { lbl.textContent = "Department names (comma-separated)"; inp.placeholder = "Marketing, Sales"; inp.value = ""; }
+  else if (v === "requesters") { lbl.textContent = "Requester names (comma-separated)"; inp.placeholder = "Alice Chen, Bob Martinez"; inp.value = ""; }
+  else { lbl.textContent = "Random N% (0-100)"; inp.placeholder = "50"; inp.value = "50"; }
+});
+
+document.getElementById("t-save").addEventListener("click", async () => {
+  const err = document.getElementById("t-err");
+  err.style.display = "none";
+  const fail = (m) => { err.textContent = m; err.style.display = "block"; };
+  const name = document.getElementById("t-name").value.trim();
+  const ttype = document.getElementById("t-target-type").value;
+  const tval  = document.getElementById("t-target-input").value.trim();
+  const ruleStr = document.getElementById("t-rule").value.trim();
+  const notes = document.getElementById("t-notes").value.trim();
+  if (!name) return fail("Treatment name is required.");
+  let target;
+  if (ttype === "random_pct") {
+    const n = parseInt(tval, 10);
+    if (!Number.isFinite(n) || n < 1 || n > 99) return fail("Random percentage must be 1-99.");
+    target = { random_pct: n, seed: Math.floor(Math.random() * 1000) };
+  } else {
+    const list = tval.split(",").map(s => s.trim()).filter(Boolean);
+    if (!list.length) return fail("Provide at least one " + (ttype === "departments" ? "department" : "requester") + ".");
+    target = { [ttype]: list };
+  }
+  let rule = {};
+  if (ruleStr) {
+    try { rule = JSON.parse(ruleStr); } catch { return fail("Rule additions must be valid JSON (or leave empty)."); }
+  }
+  try {
+    const r = await authFetch("/api/treatments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, rule_payload: rule, target_group: target, notes }),
+    });
+    const j = await r.json();
+    if (!r.ok) return fail(j.error || ("HTTP " + r.status));
+    document.getElementById("treatment-modal").classList.remove("show");
+    toast("Treatment created.");
+    await renderTreatments();
+    await renderAllAnalytics();
+  } catch (e) {
+    fail(e.message);
+  }
+});
+
+// extend renderTreatments to add an "End" action
+const _origRenderTreatments = renderTreatments;
+renderTreatments = async function() {
+  const tbody = $("#treatments-tbody");
+  tbody.innerHTML = `<tr><td colspan="5" class="empty">Loading...</td></tr>`;
+  try {
+    const r = await authFetch("/api/treatments");
+    const j = await r.json();
+    const t = j.treatments || [];
+    if (!t.length) { tbody.innerHTML = `<tr><td colspan="5" class="empty">No treatments yet. Click "+ New treatment" above to add one.</td></tr>`; return; }
+    tbody.innerHTML = "";
+    t.forEach(x => {
+      const tr = document.createElement("tr");
+      const ended = x.ended_at ? new Date(x.ended_at * 1000).toLocaleDateString() : "";
+      tr.innerHTML = `<td>${new Date(x.started_at * 1000).toLocaleDateString()}</td>
+        <td>${escapeHtml(x.name)}${ended ? ` <span style="color:#9ca3af;font-size:11px">ended ${ended}</span>` : ''}</td>
+        <td><code style="font-size:11px">${escapeHtml(JSON.stringify(x.target_group).slice(0, 100))}</code></td>
+        <td>${escapeHtml(x.notes || "")}</td>
+        <td>${x.ended_at ? "" : `<button class="btn small ghost" data-end-treatment="${x.id}">End</button>`}</td>`;
+      tbody.appendChild(tr);
+    });
+    tbody.querySelectorAll("[data-end-treatment]").forEach(b => {
+      b.addEventListener("click", async () => {
+        if (!confirm("End this treatment? Past data is preserved.")) return;
+        try {
+          const r = await authFetch("/api/treatments/end", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: parseInt(b.dataset.endTreatment) }),
+          });
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          await renderTreatments();
+        } catch (e) { toast(e.message); }
+      });
+    });
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty">${escapeHtml(e.message)}</td></tr>`;
+  }
+};
+
+// =============================================================
+//  Auditor rule-creation wizard (admin only)
+// =============================================================
+let ruleWizState = { strategy: "", history: [] };
+
+const rwOpenBtn = document.getElementById("rw-open");
+if (rwOpenBtn) rwOpenBtn.addEventListener("click", () => {
+  ruleWizState = { strategy: "", history: [] };
+  document.getElementById("rw-strategy").value = "";
+  document.getElementById("rw-history").innerHTML = "";
+  document.getElementById("rw-step-strategy").style.display = "";
+  document.getElementById("rw-step-interview").style.display = "none";
+  document.getElementById("rw-step-propose").style.display = "none";
+  document.getElementById("rule-wizard-modal").classList.add("show");
+});
+document.getElementById("rw-cancel").addEventListener("click", () => document.getElementById("rule-wizard-modal").classList.remove("show"));
+document.getElementById("rw-cancel-2").addEventListener("click", () => document.getElementById("rule-wizard-modal").classList.remove("show"));
+
+document.getElementById("rw-start").addEventListener("click", async () => {
+  const s = document.getElementById("rw-strategy").value.trim();
+  if (!s) { toast("Please describe your strategy first."); return; }
+  ruleWizState.strategy = s;
+  document.getElementById("rw-step-strategy").style.display = "none";
+  document.getElementById("rw-step-interview").style.display = "";
+  await ruleWizardAdvance();
+});
+
+document.getElementById("rw-send").addEventListener("click", async () => {
+  const ans = document.getElementById("rw-answer").value.trim();
+  if (!ans && ruleWizState.history.length) { toast("Type an answer or pick an option."); return; }
+  const last = ruleWizState.history[ruleWizState.history.length - 1];
+  if (last && !last.answer) {
+    last.answer = ans;
+    appendRwHistory("a", ans);
+  }
+  document.getElementById("rw-answer").value = "";
+  document.getElementById("rw-options-wrap").style.display = "none";
+  document.getElementById("rw-options-wrap").innerHTML = "";
+  await ruleWizardAdvance();
+});
+
+function appendRwHistory(kind, text) {
+  const div = document.createElement("div");
+  div.className = "w-turn " + kind;
+  div.textContent = text;
+  document.getElementById("rw-history").appendChild(div);
+  document.getElementById("rw-history").scrollTop = 99999;
+}
+
+async function ruleWizardAdvance() {
+  const r = await authFetch("/api/wizard-rule", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ strategy: ruleWizState.strategy, history: ruleWizState.history, mode: "ask" }),
+  });
+  const j = await r.json();
+  if (!r.ok) { toast(j.error || ("HTTP " + r.status)); return; }
+  const parsed = safeParseJson(j.text || "");
+  if (parsed && parsed.action === "ask") {
+    appendRwHistory("q", parsed.question);
+    ruleWizState.history.push({ question: parsed.question, answer: "", type: parsed.type });
+    if (parsed.type === "select" && Array.isArray(parsed.options) && parsed.options.length) {
+      const w = document.getElementById("rw-options-wrap");
+      w.innerHTML = "";
+      w.style.display = "flex";
+      parsed.options.forEach(opt => {
+        const b = document.createElement("button");
+        b.textContent = opt;
+        b.addEventListener("click", () => {
+          document.getElementById("rw-answer").value = opt;
+          document.getElementById("rw-send").click();
+        });
+        w.appendChild(b);
+      });
+    }
+    return;
+  }
+  // ready - propose
+  await ruleWizardPropose();
+}
+
+async function ruleWizardPropose() {
+  appendRwHistory("q", "Let me propose a rule based on what you've told me...");
+  const r = await authFetch("/api/wizard-rule", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ strategy: ruleWizState.strategy, history: ruleWizState.history, mode: "propose" }),
+  });
+  const j = await r.json();
+  const parsed = safeParseJson(j.text || "");
+  document.getElementById("rw-step-interview").style.display = "none";
+  document.getElementById("rw-step-propose").style.display = "";
+  if (parsed) {
+    document.getElementById("rw-proposal").textContent = JSON.stringify(parsed, null, 2);
+    document.getElementById("rw-proposal").dataset.json = JSON.stringify(parsed);
+  } else {
+    document.getElementById("rw-proposal").textContent = "Could not parse a structured proposal. Raw output:\n\n" + (j.text || "");
+    document.getElementById("rw-proposal").dataset.json = "";
+  }
+}
+
+document.getElementById("rw-discard").addEventListener("click", () => document.getElementById("rule-wizard-modal").classList.remove("show"));
+document.getElementById("rw-accept").addEventListener("click", async () => {
+  const raw = document.getElementById("rw-proposal").dataset.json;
+  if (!raw) { toast("No proposal to apply."); return; }
+  try {
+    const r = await authFetch("/api/rules/apply-additions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: raw,
+    });
+    if (!r.ok) {
+      const j = await r.json();
+      throw new Error(j.error || ("HTTP " + r.status));
+    }
+    toast("Rule applied.");
+    await loadRules();
+    if (typeof paintRulesEditor === "function") paintRulesEditor();
+    document.getElementById("rule-wizard-modal").classList.remove("show");
+  } catch (e) {
+    toast("Could not apply: " + e.message);
+  }
+});
 
 // Boot: check auth → load rules + algorithm → start routing
 (async function boot() {

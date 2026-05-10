@@ -591,6 +591,167 @@ def db_list_documents(transaction_id: str | None = None) -> list[dict]:
             return [dict(r) for r in cur.fetchall()]
 
 
+def seed_demo_data() -> dict:
+    """Seed the database with a realistic 6-month timeline of audit events,
+    treatments, and a charter-school student roster. Safe to re-run.
+    Returns counts of what was inserted."""
+    import random
+    rng = random.Random(13)
+    now = int(time.time())
+    six_months = 180 * 86400
+    inserted = {"events": 0, "treatments": 0, "rosters": 0}
+
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            # Roster table: very small dim table for institutional indicators
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS student_roster (
+                    department      TEXT PRIMARY KEY,
+                    program_label   TEXT NOT NULL,
+                    student_count   INT NOT NULL,
+                    direct_instruction_share REAL NOT NULL
+                );
+            """)
+            # Each "department" in the mock txns maps to a school program with headcount.
+            roster = [
+                ("Engineering",  "STEM after-school program",   320, 0.62),
+                ("Sales",        "Family engagement",            18, 0.05),
+                ("Marketing",    "Community outreach",           24, 0.08),
+                ("Finance",      "Operations - admin",           12, 0.00),
+                ("Operations",   "Facilities - admin",           36, 0.10),
+                ("HR",           "Staff development",            22, 0.20),
+            ]
+            for r in roster:
+                cur.execute(
+                    "INSERT INTO student_roster (department, program_label, student_count, direct_instruction_share) "
+                    "VALUES (%s,%s,%s,%s) ON CONFLICT (department) DO UPDATE SET "
+                    "program_label = EXCLUDED.program_label, student_count = EXCLUDED.student_count, "
+                    "direct_instruction_share = EXCLUDED.direct_instruction_share",
+                    r,
+                )
+                inserted["rosters"] += 1
+
+            # Don't double-seed events
+            cur.execute("SELECT COUNT(*) AS n FROM audit_events WHERE event_type IN ('override','rule_change','treatment_created','document_upload')")
+            existing_events = cur.fetchone()["n"]
+            if existing_events > 50:
+                conn.commit()
+                return {**inserted, "skipped_events": existing_events}
+
+            # 1. Rule-change events (3-4 across the 6 months)
+            rule_events = [
+                (now - int(six_months * 0.85), "Tightened auto-RED phrases (+'no reason')"),
+                (now - int(six_months * 0.55), "Added Marketing $3K hard cap"),
+                (now - int(six_months * 0.30), "Required PO# for Consulting > $10K"),
+                (now - int(six_months * 0.10), "Added wizard step for Equipment > $5K"),
+            ]
+            for ts, label in rule_events:
+                cur.execute(
+                    "INSERT INTO audit_events (occurred_at, event_type, actor, target, payload) VALUES (%s,%s,%s,%s,%s)",
+                    (ts, "rule_change", "admin", "policy_text", json.dumps({"label": label})),
+                )
+                inserted["events"] += 1
+
+            # 2. Override events - auditor overrides employee classifications
+            requesters = ["Alice Chen","Bob Martinez","Carol Davis","Devon Patel","Erin O'Brien","Frank Lee","Grace Kim","Hugo Bauer"]
+            departments = ["Engineering","Sales","Marketing","Finance","Operations","Engineering","HR","Sales"]
+            categories  = ["Travel","Software/SaaS","Marketing","Office Supplies","Consulting","Equipment","Meals & Entertainment","Utilities"]
+            for i in range(80):
+                ts = now - rng.randint(0, six_months)
+                req_idx = rng.randint(0, len(requesters) - 1)
+                req = requesters[req_idx]
+                dept = departments[req_idx]
+                cat = rng.choice(categories)
+                # different baseline override rates per category/requester so the analytics see signal
+                from_flag = rng.choice(["RED","RED","RED","YELLOW","GREEN"])
+                to_flag = rng.choice(["YELLOW","GREEN","RED"])
+                if from_flag == to_flag:
+                    to_flag = "GREEN" if from_flag == "RED" else "RED"
+                cur.execute(
+                    "INSERT INTO audit_events (occurred_at, event_type, actor, target, payload) VALUES (%s,%s,%s,%s,%s)",
+                    (ts, "override", "auditor1", f"TXN{100000 + i}",
+                     json.dumps({"from": from_flag, "to": to_flag, "requester": req,
+                                 "department": dept, "category": cat,
+                                 "amount": round(rng.uniform(200, 8000), 2),
+                                 "note": "Documented override during audit cycle."})),
+                )
+                inserted["events"] += 1
+
+            # 3. Wizard classifications (mix of GREEN/YELLOW/RED with employee + dept context)
+            for i in range(120):
+                ts = now - rng.randint(0, six_months)
+                req_idx = rng.randint(0, len(requesters) - 1)
+                cat = rng.choice(categories)
+                flag = rng.choices(["GREEN","YELLOW","RED"], weights=[0.55, 0.25, 0.20])[0]
+                cur.execute(
+                    "INSERT INTO audit_events (occurred_at, event_type, actor, target, payload) VALUES (%s,%s,%s,%s,%s)",
+                    (ts, "wizard_classification", requesters[req_idx], f"TXN{100200 + i}",
+                     json.dumps({"flag": flag, "requester": requesters[req_idx],
+                                 "department": departments[req_idx], "category": cat,
+                                 "amount": round(rng.uniform(150, 12000), 2)})),
+                )
+                inserted["events"] += 1
+
+            # 4. Document uploads
+            for i in range(40):
+                ts = now - rng.randint(0, six_months)
+                req_idx = rng.randint(0, len(requesters) - 1)
+                cur.execute(
+                    "INSERT INTO audit_events (occurred_at, event_type, actor, target, payload) VALUES (%s,%s,%s,%s,%s)",
+                    (ts, "document_upload", requesters[req_idx], f"TXN{100300 + i}",
+                     json.dumps({"filename": f"receipt_{i}.pdf", "mime": "application/pdf",
+                                 "size": rng.randint(40_000, 800_000), "has_text": rng.random() > 0.3})),
+                )
+                inserted["events"] += 1
+
+            # 5. Treatments - 3 experimental rule deployments with known target groups
+            treatments = [
+                ("Q2 Marketing pre-approval pilot",
+                 {"policy_text_addition": "Marketing > $2K requires CFO sign-off."},
+                 {"departments": ["Marketing"]},
+                 now - int(six_months * 0.40),
+                 "Pilot to test whether stricter pre-approval reduces marketing overruns."),
+                ("Random 50% Equipment cap test",
+                 {"new_category_caps": [{"category": "Equipment", "soft_cap": 2000, "hard_cap": 6000}]},
+                 {"random_pct": 50, "seed": 42},
+                 now - int(six_months * 0.20),
+                 "Randomly half of all requesters for parallel-trends analysis."),
+                ("Sales travel guardrails",
+                 {"new_auto_red_keywords": ["upgrade","rebooked","resort"]},
+                 {"departments": ["Sales"]},
+                 now - int(six_months * 0.10),
+                 "Targets specific phrases known to correlate with policy violations."),
+            ]
+            for name, rule, tgt, started, note in treatments:
+                cur.execute(
+                    "INSERT INTO treatments (name, rule_payload, target_group, started_at, notes) "
+                    "VALUES (%s, %s, %s, %s, %s) RETURNING id",
+                    (name, json.dumps(rule), json.dumps(tgt), started, note),
+                )
+                tid = cur.fetchone()["id"]
+                inserted["treatments"] += 1
+                # also log a treatment_created event so it shows in event_study
+                cur.execute(
+                    "INSERT INTO audit_events (occurred_at, event_type, actor, target, payload) VALUES (%s,%s,%s,%s,%s)",
+                    (started, "treatment_created", "researcher1", str(tid),
+                     json.dumps({"name": name, "rule_payload": rule, "target_group": tgt})),
+                )
+                inserted["events"] += 1
+
+        conn.commit()
+    return inserted
+
+
+def db_load_roster() -> list[dict]:
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT department, program_label, student_count, direct_instruction_share FROM student_roster")
+                return [dict(r) for r in cur.fetchall()]
+    except Exception:
+        return []
+
+
 def db_get_document(doc_id: int) -> dict | None:
     with get_conn() as conn:
         with conn.cursor() as cur:
@@ -913,10 +1074,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
             limit = int((q.get("limit", ["500"]) or ["500"])[0])
             self._json(200, {"events": db_recent_events(min(limit, 5000))})
         elif path == "/api/treatments":
-            # researcher-only: list of experimental treatments
             if not self._require_researcher():
                 return
             self._json(200, {"treatments": db_load_treatments()})
+        elif path == "/api/roster":
+            self._json(200, {"roster": db_load_roster()})
         else:
             try:
                 target = (WEB_DIR / path.lstrip("/")).resolve()
@@ -969,6 +1131,45 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif path == "/api/wizard-rule":
             if self._require_admin():
                 self._wizard_rule()
+        elif path == "/api/seed-mock-data":
+            if self._require_researcher():
+                try:
+                    counts = seed_demo_data()
+                    self._json(200, counts)
+                except Exception as e:
+                    self._json(500, {"error": str(e)})
+        elif path == "/api/treatments/end":
+            if self._require_researcher():
+                try:
+                    length = int(self.headers.get("Content-Length", "0"))
+                    data = json.loads(self.rfile.read(length))
+                    db_end_treatment(int(data.get("id")))
+                    self._json(200, {"ok": True})
+                except Exception as e:
+                    self._json(500, {"error": str(e)})
+        elif path == "/api/rules/apply-additions":
+            # Auditor wizard's "accept proposal" applies the additions to the
+            # current ruleset (kept separate from /api/rules to be explicit).
+            if self._require_admin():
+                try:
+                    length = int(self.headers.get("Content-Length", "0"))
+                    add = json.loads(self.rfile.read(length))
+                    cur = load_rules()
+                    if add.get("policy_text_addition"):
+                        cur["policy_text"] = (cur.get("policy_text", "") + "\n\n" + add["policy_text_addition"]).strip()
+                    if isinstance(add.get("new_auto_red_keywords"), list):
+                        cur["auto_red_keywords"] = list({*(cur.get("auto_red_keywords") or []), *[str(k).lower() for k in add["new_auto_red_keywords"]]})
+                    if isinstance(add.get("new_auto_green_keywords"), list):
+                        cur["auto_green_keywords"] = list({*(cur.get("auto_green_keywords") or []), *[str(k).lower() for k in add["new_auto_green_keywords"]]})
+                    if isinstance(add.get("new_category_caps"), list):
+                        cur["category_caps"] = (cur.get("category_caps") or []) + add["new_category_caps"]
+                    saved = save_rules(cur)
+                    actor = (session_info(self._bearer_token()) or {}).get("username")
+                    log_event("rule_change", actor, "wizard_apply",
+                              {"additions": add, "rationale": add.get("rationale", "")})
+                    self._json(200, saved)
+                except Exception as e:
+                    self._json(500, {"error": str(e)})
         else:
             self.send_error(404)
 
