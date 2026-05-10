@@ -1,0 +1,20 @@
+# secrets - NEVER commit these
+.env
+.env.local
+auth.json
+rules.json
+*.key
+
+# python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# generated outputs
+output/
+
+# editor / OS
+.DS_Store
+.idea/
+.vscode/

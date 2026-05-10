@@ -1,0 +1,501 @@
+transaction_id,date,category,vendor,amount,requester,department,gl_account,cost_center,description
+TXN100457,2025-11-10,Consulting,Deloitte,5812.94,Bob Martinez,Sales,60040,CC-143,Consulting - Deloitte
+TXN100136,2026-03-31,Office Supplies,Quill,186.03,Erin O'Brien,Operations,60010,CC-115,Office Supplies - Quill
+TXN100092,2026-02-06,Utilities,PG&E,424.44,Grace Kim,HR,60070,CC-162,Utilities - PG&E
+TXN100174,2026-04-23,Meals & Entertainment,GrubHub,80.1,Alice Chen,Engineering,60060,CC-195,Meals & Entertainment - GrubHub
+TXN100147,2026-04-26,Utilities,Comcast,254.19,Hugo Bauer,Sales,60070,CC-103,Utilities - Comcast
+TXN100220,2025-12-09,Marketing,Facebook Ads,730.02,Frank Lee,Engineering,60030,CC-192,Marketing - Facebook Ads
+TXN100209,2025-11-23,Meals & Entertainment,Starbucks,134.51,Frank Lee,Engineering,60060,CC-140,Meals & Entertainment - Starbucks
+TXN100431,2026-03-21,Utilities,Comcast,398.9,Grace Kim,HR,60070,CC-103,Utilities - Comcast
+TXN100208,2026-02-12,Marketing,HubSpot,63.55,Frank Lee,Engineering,60030,CC-151,Marketing - HubSpot
+TXN100227,2026-01-03,Software/SaaS,Zoom,443.45,Erin O'Brien,Operations,60020,CC-115,Software/SaaS - Zoom
+TXN100128,2025-12-26,Meals & Entertainment,Starbucks,20.57,Grace Kim,HR,60060,CC-156,Meals & Entertainment - Starbucks
+TXN100065,2025-12-20,Marketing,Facebook Ads,2249.92,Hugo Bauer,Sales,60030,CC-139,Marketing - Facebook Ads
+TXN100372,2026-03-10,Utilities,Verizon,381.7,Grace Kim,HR,60070,CC-172,Utilities - Verizon
+TXN100421,2025-11-03,Equipment,CDW,3075.88,Devon Patel,Finance,60050,CC-118,Equipment - CDW
+TXN100211,2026-02-17,Office Supplies,Amazon Business,136.35,Bob Martinez,Sales,60010,CC-116,Office Supplies - Amazon Business
+TXN100341,2026-04-04,Consulting,McKinsey,6249.38,Hugo Bauer,Sales,60040,CC-131,Consulting - McKinsey
+TXN100370,2026-01-21,Marketing,Google Ads,893.16,Hugo Bauer,Sales,60030,CC-187,Marketing - Google Ads
+TXN100309,2026-03-07,Office Supplies,Office Depot,82.03,Carol Davis,Marketing,60010,CC-121,Office Supplies - Office Depot
+TXN100046,2025-12-29,Office Supplies,Staples,70.39,Grace Kim,HR,60010,CC-172,Office Supplies - Staples
+TXN100058,2026-04-28,Consulting,FreelancerX,6253.02,Grace Kim,HR,60040,CC-101,Consulting - FreelancerX
+TXN100242,2026-04-13,Travel,Delta,693.66,Bob Martinez,Sales,60000,CC-176,Travel - Delta
+TXN100183,2026-03-16,Consulting,Boston Consulting,4188.2,Bob Martinez,Sales,60040,CC-147,Consulting - Boston Consulting
+TXN100140,2026-03-11,Travel,Hertz,864.3,Hugo Bauer,Sales,60000,CC-123,Travel - Hertz
+TXN100276,2025-12-30,Travel,Lyft,784.73,Bob Martinez,Sales,60000,CC-174,Travel - Lyft
+TXN100217,2025-11-06,Consulting,Accenture,3207.85,Carol Davis,Marketing,60040,CC-189,Consulting - Accenture
+TXN100490,2026-03-09,Equipment,Apple,5385.22,Grace Kim,HR,60050,CC-154,Equipment - Apple
+TXN100471,2025-12-04,Consulting,Accenture,2455.32,Carol Davis,Marketing,60040,CC-157,Consulting - Accenture
+TXN100280,2025-12-20,Utilities,AT&T,402.24,Alice Chen,Engineering,60070,CC-139,Utilities - AT&T
+TXN100180,2026-03-02,Consulting,Accenture,5821.28,Erin O'Brien,Operations,60040,CC-114,Consulting - Accenture
+TXN100336,2025-11-27,Marketing,Google Ads,2631.35,Devon Patel,Finance,60030,CC-156,Marketing - Google Ads
+TXN100098,2026-02-14,Meals & Entertainment,DoorDash,68.3,Erin O'Brien,Operations,60060,CC-160,Meals & Entertainment - DoorDash
+TXN100113,2026-01-21,Utilities,Verizon,439.37,Carol Davis,Marketing,60070,CC-127,Utilities - Verizon
+TXN100086,2026-04-11,Utilities,Verizon,222.97,Erin O'Brien,Operations,60070,CC-180,Utilities - Verizon
+TXN100165,2025-11-06,Consulting,Accenture,5403.71,Alice Chen,Engineering,60040,CC-107,Consulting - Accenture
+TXN100090,2026-02-13,Meals & Entertainment,Local Restaurant,37.71,Alice Chen,Engineering,60060,CC-153,Meals & Entertainment - Local Restaurant
+TXN100014,2026-03-24,Meals & Entertainment,Local Restaurant,86.17,Frank Lee,Engineering,60060,CC-183,Meals & Entertainment - Local Restaurant
+TXN100172,2025-11-26,Marketing,HubSpot,2375.63,Devon Patel,Finance,60030,CC-173,Marketing - HubSpot
+TXN100204,2026-02-20,Meals & Entertainment,DoorDash,67.31,Bob Martinez,Sales,60060,CC-141,Meals & Entertainment - DoorDash
+TXN100390,2026-01-14,Equipment,Apple,1262.66,Grace Kim,HR,60050,CC-196,Equipment - Apple
+TXN100318,2026-02-05,Software/SaaS,Slack,585.9,Grace Kim,HR,60020,CC-120,Software/SaaS - Slack
+TXN100331,2026-03-30,Consulting,FreelancerX,3360.19,Frank Lee,Engineering,60040,CC-165,Consulting - FreelancerX
+TXN100377,2026-04-12,Software/SaaS,Zoom,430.33,Grace Kim,HR,60020,CC-148,Software/SaaS - Zoom
+TXN100474,2025-11-06,Utilities,AT&T,316.85,Devon Patel,Finance,60070,CC-104,Utilities - AT&T
+TXN100206,2026-01-13,Equipment,CDW,808.01,Hugo Bauer,Sales,60050,CC-177,Equipment - CDW
+TXN100221,2026-03-24,Equipment,Dell,2040.14,Bob Martinez,Sales,60050,CC-119,Equipment - Dell
+TXN100108,2026-03-04,Equipment,B&H Photo,2228.4,Bob Martinez,Sales,60050,CC-146,Equipment - B&H Photo
+TXN100461,2026-02-22,Marketing,HubSpot,2008.89,Grace Kim,HR,60030,CC-100,Marketing - HubSpot
+TXN100150,2026-03-02,Consulting,McKinsey,3244.35,Hugo Bauer,Sales,60040,CC-158,Consulting - McKinsey
+TXN100251,2026-01-17,Office Supplies,Amazon Business,148.93,Grace Kim,HR,60010,CC-116,Office Supplies - Amazon Business
+TXN100176,2026-04-16,Marketing,Google Ads,545.22,Carol Davis,Marketing,60030,CC-180,Marketing - Google Ads
+TXN100072,2025-11-30,Equipment,CDW,761.16,Erin O'Brien,Operations,60050,CC-139,Equipment - CDW
+TXN100476,2026-04-21,Utilities,AT&T,721.93,Bob Martinez,Sales,60070,CC-199,Utilities - AT&T
+TXN100342,2026-01-14,Consulting,McKinsey,3533.17,Erin O'Brien,Operations,60040,CC-188,Consulting - McKinsey
+TXN100450,2026-04-13,Travel,Lyft,478.39,Grace Kim,HR,60000,CC-142,Travel - Lyft
+TXN100218,2025-12-15,Consulting,FreelancerX,6802.17,Carol Davis,Marketing,60040,CC-184,Consulting - FreelancerX
+TXN100093,2026-01-07,Marketing,HubSpot,1220.69,Grace Kim,HR,60030,CC-103,Marketing - HubSpot
+TXN100193,2025-11-30,Marketing,Google Ads,743.28,Hugo Bauer,Sales,60030,CC-184,Marketing - Google Ads
+TXN100285,2026-02-15,Office Supplies,Quill,112.3,Bob Martinez,Sales,60010,CC-177,Office Supplies - Quill
+TXN100120,2026-03-16,Office Supplies,Office Depot,113.75,Carol Davis,Marketing,60010,CC-127,Office Supplies - Office Depot
+TXN100266,2025-11-24,Office Supplies,Office Depot,113.24,Frank Lee,Engineering,60010,CC-117,Office Supplies - Office Depot
+TXN100437,2026-04-08,Marketing,Mailchimp,1450.32,Hugo Bauer,Sales,60030,CC-178,Marketing - Mailchimp
+TXN100041,2025-10-30,Meals & Entertainment,Cheesecake Factory,139.87,Grace Kim,HR,60060,CC-158,Meals & Entertainment - Cheesecake Factory
+TXN100157,2026-04-28,Utilities,Verizon,324.56,Grace Kim,HR,60070,CC-184,Utilities - Verizon
+TXN100155,2026-02-23,Meals & Entertainment,Local Restaurant,49.26,Frank Lee,Engineering,60060,CC-189,Meals & Entertainment - Local Restaurant
+TXN100124,2026-01-10,Utilities,Verizon,360.05,Hugo Bauer,Sales,60070,CC-156,Utilities - Verizon
+TXN100049,2025-12-30,Equipment,B&H Photo,745.26,Erin O'Brien,Operations,60050,CC-116,Equipment - B&H Photo
+TXN100478,2026-04-22,Marketing,Facebook Ads,4781.6,Devon Patel,Finance,60030,CC-104,Marketing - Facebook Ads
+TXN100097,2026-02-23,Marketing,Facebook Ads,1702.84,Frank Lee,Engineering,60030,CC-197,Marketing - Facebook Ads
+TXN100121,2026-01-08,Utilities,Comcast,281.47,Erin O'Brien,Operations,60070,CC-124,Utilities - Comcast
+TXN100397,2026-01-15,Equipment,Apple,1177.64,Alice Chen,Engineering,60050,CC-124,Equipment - Apple
+TXN100470,2026-04-13,Utilities,PG&E,268.94,Carol Davis,Marketing,60070,CC-162,Utilities - PG&E
+TXN100426,2026-02-03,Utilities,PG&E,363.9,Grace Kim,HR,60070,CC-187,Utilities - PG&E
+TXN100112,2026-04-04,Utilities,AT&T,353.45,Grace Kim,HR,60070,CC-103,Utilities - AT&T
+TXN100143,2026-01-11,Utilities,Comcast,388.34,Grace Kim,HR,60070,CC-158,Utilities - Comcast
+TXN100031,2025-11-17,Travel,Marriott,872.6,Alice Chen,Engineering,60000,CC-108,Travel - Marriott
+TXN100442,2026-01-21,Utilities,AT&T,486.77,Grace Kim,HR,60070,CC-150,Utilities - AT&T
+TXN100170,2026-02-20,Consulting,FreelancerX,4433.23,Frank Lee,Engineering,60040,CC-138,Consulting - FreelancerX
+TXN100403,2026-01-13,Meals & Entertainment,Local Restaurant,118.3,Carol Davis,Marketing,60060,CC-142,Meals & Entertainment - Local Restaurant
+TXN100422,2026-03-23,Meals & Entertainment,GrubHub,128.03,Devon Patel,Finance,60060,CC-149,Meals & Entertainment - GrubHub
+TXN100262,2026-03-11,Equipment,Best Buy,1193.24,Bob Martinez,Sales,60050,CC-110,Equipment - Best Buy
+TXN100367,2026-04-27,Meals & Entertainment,GrubHub,116.27,Hugo Bauer,Sales,60060,CC-185,Meals & Entertainment - GrubHub
+TXN100277,2025-12-03,Equipment,Best Buy,1704.75,Alice Chen,Engineering,60050,CC-169,Equipment - Best Buy
+TXN100486,2026-03-23,Meals & Entertainment,Starbucks,313.42,Erin O'Brien,Operations,60060,CC-148,Meals & Entertainment - Starbucks
+TXN100289,2025-11-18,Travel,Hertz,916.17,Grace Kim,HR,60000,CC-165,Travel - Hertz
+TXN100054,2025-11-28,Office Supplies,Office Depot,139.92,Bob Martinez,Sales,60010,CC-134,Office Supplies - Office Depot
+TXN100048,2026-01-18,Meals & Entertainment,Local Restaurant,54.53,Erin O'Brien,Operations,60060,CC-185,Meals & Entertainment - Local Restaurant
+TXN100003,2026-03-29,Utilities,Comcast,443.08,Erin O'Brien,Operations,60070,CC-197,Utilities - Comcast
+TXN100296,2026-04-04,Consulting,Boston Consulting,4564.54,Erin O'Brien,Operations,60040,CC-125,Consulting - Boston Consulting
+TXN100239,2026-04-22,Utilities,AT&T,233.45,Frank Lee,Engineering,60070,CC-119,Utilities - AT&T
+TXN100185,2026-04-06,Travel,Delta,586.24,Frank Lee,Engineering,60000,CC-128,Travel - Delta
+TXN100468,2026-03-09,Office Supplies,Quill,145.12,Grace Kim,HR,60010,CC-176,Office Supplies - Quill
+TXN100335,2025-12-12,Utilities,PG&E,466.25,Grace Kim,HR,60070,CC-187,Utilities - PG&E
+TXN100229,2026-03-07,Marketing,Google Ads,1210.46,Frank Lee,Engineering,60030,CC-150,Marketing - Google Ads
+TXN100314,2026-02-25,Travel,Hertz,1008.46,Devon Patel,Finance,60000,CC-177,Travel - Hertz
+TXN100371,2026-03-28,Marketing,Google Ads,1049.2,Hugo Bauer,Sales,60030,CC-165,Marketing - Google Ads
+TXN100402,2025-12-06,Meals & Entertainment,Cheesecake Factory,185.8,Alice Chen,Engineering,60060,CC-170,Meals & Entertainment - Cheesecake Factory
+TXN100248,2025-11-15,Travel,United Airlines,948.63,Frank Lee,Engineering,60000,CC-171,Travel - United Airlines
+TXN100202,2026-04-16,Marketing,HubSpot,1368.26,Erin O'Brien,Operations,60030,CC-182,Marketing - HubSpot
+TXN100429,2025-11-26,Equipment,Dell,1699.71,Bob Martinez,Sales,60050,CC-139,Equipment - Dell
+TXN100056,2025-11-12,Consulting,Boston Consulting,3327.87,Bob Martinez,Sales,60040,CC-135,Consulting - Boston Consulting
+TXN100378,2026-02-03,Utilities,PG&E,468.99,Bob Martinez,Sales,60070,CC-183,Utilities - PG&E
+TXN100292,2026-02-01,Travel,Uber,516.6,Frank Lee,Engineering,60000,CC-197,Travel - Uber
+TXN100455,2026-01-25,Consulting,McKinsey,6393.34,Hugo Bauer,Sales,60040,CC-166,Consulting - McKinsey
+TXN100338,2026-02-27,Marketing,LinkedIn Ads,323.71,Alice Chen,Engineering,60030,CC-166,Marketing - LinkedIn Ads
+TXN100009,2026-01-09,Meals & Entertainment,Cheesecake Factory,100.21,Hugo Bauer,Sales,60060,CC-120,Meals & Entertainment - Cheesecake Factory
+TXN100247,2026-02-06,Consulting,Accenture,4848.24,Grace Kim,HR,60040,CC-186,Consulting - Accenture
+TXN100181,2025-11-18,Utilities,PG&E,296.06,Carol Davis,Marketing,60070,CC-186,Utilities - PG&E
+TXN100075,2026-02-10,Consulting,Accenture,8038.53,Alice Chen,Engineering,60040,CC-136,Consulting - Accenture
+TXN100240,2026-01-15,Utilities,Comcast,428.61,Erin O'Brien,Operations,60070,CC-145,Utilities - Comcast
+TXN100441,2026-02-08,Software/SaaS,Zoom,708.39,Frank Lee,Engineering,60020,CC-194,Software/SaaS - Zoom
+TXN100082,2025-11-26,Marketing,LinkedIn Ads,1749.23,Grace Kim,HR,60030,CC-122,Marketing - LinkedIn Ads
+TXN100481,2026-04-20,Meals & Entertainment,Local Restaurant,264.9,Devon Patel,Finance,60060,CC-107,Meals & Entertainment - Local Restaurant
+TXN100087,2026-01-08,Marketing,Google Ads,1509.1,Hugo Bauer,Sales,60030,CC-191,Marketing - Google Ads
+TXN100047,2026-03-27,Marketing,Mailchimp,694.05,Alice Chen,Engineering,60030,CC-110,Marketing - Mailchimp
+TXN100263,2026-01-07,Software/SaaS,Atlassian,418.73,Hugo Bauer,Sales,60020,CC-118,Software/SaaS - Atlassian
+TXN100199,2026-03-29,Marketing,Google Ads,923.79,Frank Lee,Engineering,60030,CC-122,Marketing - Google Ads
+TXN100025,2025-11-03,Utilities,AT&T,315.98,Bob Martinez,Sales,60070,CC-139,Utilities - AT&T
+TXN100016,2026-01-05,Software/SaaS,Atlassian,455.44,Grace Kim,HR,60020,CC-151,Software/SaaS - Atlassian
+TXN100302,2026-01-17,Software/SaaS,AWS,385.23,Grace Kim,HR,60020,CC-192,Software/SaaS - AWS
+TXN100099,2026-03-17,Travel,Hertz,1527.33,Alice Chen,Engineering,60000,CC-128,Travel - Hertz
+TXN100106,2025-11-29,Consulting,Accenture,6755.97,Alice Chen,Engineering,60040,CC-168,Consulting - Accenture
+TXN100250,2026-01-27,Equipment,B&H Photo,2400.75,Erin O'Brien,Operations,60050,CC-116,Equipment - B&H Photo
+TXN100231,2026-04-11,Meals & Entertainment,Cheesecake Factory,111.65,Grace Kim,HR,60060,CC-114,Meals & Entertainment - Cheesecake Factory
+TXN100303,2026-03-13,Utilities,Verizon,328.03,Grace Kim,HR,60070,CC-173,Utilities - Verizon
+TXN100017,2025-12-25,Equipment,CDW,2398.47,Carol Davis,Marketing,60050,CC-163,Equipment - CDW
+TXN100236,2026-04-13,Marketing,LinkedIn Ads,1661.91,Carol Davis,Marketing,60030,CC-113,Marketing - LinkedIn Ads
+TXN100102,2026-04-27,Office Supplies,Amazon Business,94.19,Erin O'Brien,Operations,60010,CC-121,Office Supplies - Amazon Business
+TXN100362,2026-01-06,Consulting,Accenture,3218.71,Frank Lee,Engineering,60040,CC-174,Consulting - Accenture
+TXN100152,2026-02-13,Software/SaaS,Notion,555.62,Frank Lee,Engineering,60020,CC-164,Software/SaaS - Notion
+TXN100192,2026-01-29,Equipment,B&H Photo,75.0,Alice Chen,Engineering,60050,CC-135,Equipment - B&H Photo
+TXN100433,2026-02-12,Consulting,Deloitte,5772.4,Grace Kim,HR,60040,CC-192,Consulting - Deloitte
+TXN100419,2025-12-27,Travel,Lyft,738.74,Devon Patel,Finance,60000,CC-188,Travel - Lyft
+TXN100103,2025-12-10,Office Supplies,Staples,109.03,Erin O'Brien,Operations,60010,CC-174,Office Supplies - Staples
+TXN100380,2025-10-30,Software/SaaS,Zoom,430.31,Alice Chen,Engineering,60020,CC-159,Software/SaaS - Zoom
+TXN100269,2026-03-19,Software/SaaS,Microsoft 365,456.51,Grace Kim,HR,60020,CC-199,Software/SaaS - Microsoft 365
+TXN100178,2026-01-13,Equipment,B&H Photo,1466.35,Frank Lee,Engineering,60050,CC-122,Equipment - B&H Photo
+TXN100282,2025-11-11,Marketing,Facebook Ads,931.31,Frank Lee,Engineering,60030,CC-115,Marketing - Facebook Ads
+TXN100012,2026-04-24,Meals & Entertainment,Cheesecake Factory,75.76,Devon Patel,Finance,60060,CC-198,Meals & Entertainment - Cheesecake Factory
+TXN100131,2025-12-09,Office Supplies,Office Depot,78.26,Devon Patel,Finance,60010,CC-170,Office Supplies - Office Depot
+TXN100101,2025-12-30,Software/SaaS,GitHub,165.08,Carol Davis,Marketing,60020,CC-185,Software/SaaS - GitHub
+TXN100156,2026-02-12,Marketing,Facebook Ads,806.15,Alice Chen,Engineering,60030,CC-195,Marketing - Facebook Ads
+TXN100443,2025-11-28,Equipment,CDW,1254.22,Devon Patel,Finance,60050,CC-169,Equipment - CDW
+TXN100258,2026-02-21,Marketing,Mailchimp,2009.05,Devon Patel,Finance,60030,CC-130,Marketing - Mailchimp
+TXN100384,2025-11-11,Travel,Hilton,455.36,Devon Patel,Finance,60000,CC-105,Travel - Hilton
+TXN100497,2026-03-19,Software/SaaS,AWS,1081.07,Erin O'Brien,Operations,60020,CC-189,Software/SaaS - AWS
+TXN100055,2026-04-02,Consulting,Accenture,4557.69,Devon Patel,Finance,60040,CC-126,Consulting - Accenture
+TXN100010,2026-04-27,Equipment,CDW,859.58,Bob Martinez,Sales,60050,CC-181,Equipment - CDW
+TXN100249,2026-01-10,Meals & Entertainment,GrubHub,20.0,Erin O'Brien,Operations,60060,CC-119,Meals & Entertainment - GrubHub
+TXN100498,2026-04-23,Marketing,Google Ads,3772.62,Bob Martinez,Sales,60030,CC-127,Marketing - Google Ads
+TXN100234,2026-01-17,Meals & Entertainment,Local Restaurant,40.38,Frank Lee,Engineering,60060,CC-142,Meals & Entertainment - Local Restaurant
+TXN100347,2026-03-22,Consulting,McKinsey,6955.09,Erin O'Brien,Operations,60040,CC-113,Consulting - McKinsey
+TXN100393,2026-02-06,Software/SaaS,Zoom,33.17,Devon Patel,Finance,60020,CC-126,Software/SaaS - Zoom
+TXN100245,2025-11-20,Equipment,Dell,2216.41,Carol Davis,Marketing,60050,CC-131,Equipment - Dell
+TXN100224,2026-02-17,Marketing,Facebook Ads,1209.16,Bob Martinez,Sales,60030,CC-186,Marketing - Facebook Ads
+TXN100460,2026-02-08,Software/SaaS,AWS,563.9,Alice Chen,Engineering,60020,CC-178,Software/SaaS - AWS
+TXN100053,2026-04-04,Consulting,FreelancerX,1921.14,Alice Chen,Engineering,60040,CC-138,Consulting - FreelancerX
+TXN100323,2025-11-26,Travel,Marriott,918.51,Grace Kim,HR,60000,CC-133,Travel - Marriott
+TXN100317,2025-11-30,Utilities,Verizon,406.36,Erin O'Brien,Operations,60070,CC-131,Utilities - Verizon
+TXN100376,2026-01-11,Office Supplies,Office Depot,165.04,Grace Kim,HR,60010,CC-198,Office Supplies - Office Depot
+TXN100237,2026-01-03,Software/SaaS,Slack,346.66,Devon Patel,Finance,60020,CC-177,Software/SaaS - Slack
+TXN100343,2026-01-19,Utilities,AT&T,329.62,Hugo Bauer,Sales,60070,CC-171,Utilities - AT&T
+TXN100119,2026-01-07,Utilities,AT&T,366.46,Erin O'Brien,Operations,60070,CC-129,Utilities - AT&T
+TXN100173,2026-03-26,Equipment,Best Buy,1494.6,Erin O'Brien,Operations,60050,CC-102,Equipment - Best Buy
+TXN100358,2025-12-16,Software/SaaS,AWS,415.78,Alice Chen,Engineering,60020,CC-143,Software/SaaS - AWS
+TXN100166,2025-12-31,Consulting,FreelancerX,3528.95,Grace Kim,HR,60040,CC-187,Consulting - FreelancerX
+TXN100272,2025-10-30,Marketing,LinkedIn Ads,1102.24,Frank Lee,Engineering,60030,CC-173,Marketing - LinkedIn Ads
+TXN100409,2025-11-01,Software/SaaS,Atlassian,244.59,Devon Patel,Finance,60020,CC-158,Software/SaaS - Atlassian
+TXN100149,2026-02-25,Office Supplies,Office Depot,86.59,Bob Martinez,Sales,60010,CC-163,Office Supplies - Office Depot
+TXN100466,2026-04-28,Utilities,Comcast,241.43,Erin O'Brien,Operations,60070,CC-186,Utilities - Comcast
+TXN100436,2026-03-02,Software/SaaS,Zoom,258.25,Bob Martinez,Sales,60020,CC-132,Software/SaaS - Zoom
+TXN100399,2026-01-10,Equipment,B&H Photo,327.33,Grace Kim,HR,60050,CC-168,Equipment - B&H Photo
+TXN100201,2026-01-30,Utilities,Verizon,392.56,Bob Martinez,Sales,60070,CC-164,Utilities - Verizon
+TXN100069,2026-01-26,Meals & Entertainment,Starbucks,177.95,Frank Lee,Engineering,60060,CC-177,Meals & Entertainment - Starbucks
+TXN100115,2025-11-20,Marketing,HubSpot,677.23,Devon Patel,Finance,60030,CC-162,Marketing - HubSpot
+TXN100081,2026-04-26,Marketing,HubSpot,1268.74,Grace Kim,HR,60030,CC-151,Marketing - HubSpot
+TXN100400,2026-03-06,Equipment,Dell,1262.8,Hugo Bauer,Sales,60050,CC-192,Equipment - Dell
+TXN100368,2026-03-31,Marketing,Mailchimp,1267.46,Bob Martinez,Sales,60030,CC-157,Marketing - Mailchimp
+TXN100297,2025-12-03,Office Supplies,Quill,93.35,Bob Martinez,Sales,60010,CC-122,Office Supplies - Quill
+TXN100066,2026-02-09,Marketing,Facebook Ads,1349.22,Frank Lee,Engineering,60030,CC-108,Marketing - Facebook Ads
+TXN100252,2026-01-30,Office Supplies,Amazon Business,94.49,Alice Chen,Engineering,60010,CC-139,Office Supplies - Amazon Business
+TXN100453,2026-02-25,Meals & Entertainment,Cheesecake Factory,85.95,Carol Davis,Marketing,60060,CC-103,Meals & Entertainment - Cheesecake Factory
+TXN100345,2026-01-12,Software/SaaS,Zoom,703.76,Alice Chen,Engineering,60020,CC-191,Software/SaaS - Zoom
+TXN100169,2026-02-24,Consulting,Deloitte,3884.21,Erin O'Brien,Operations,60040,CC-159,Consulting - Deloitte
+TXN100448,2026-03-16,Travel,United Airlines,916.89,Bob Martinez,Sales,60000,CC-198,Travel - United Airlines
+TXN100207,2025-11-24,Meals & Entertainment,GrubHub,135.89,Bob Martinez,Sales,60060,CC-192,Meals & Entertainment - GrubHub
+TXN100424,2025-11-18,Equipment,CDW,2208.12,Frank Lee,Engineering,60050,CC-198,Equipment - CDW
+TXN100243,2026-02-25,Meals & Entertainment,Starbucks,120.21,Alice Chen,Engineering,60060,CC-173,Meals & Entertainment - Starbucks
+TXN100019,2026-02-05,Office Supplies,Quill,40.57,Grace Kim,HR,60010,CC-167,Office Supplies - Quill
+TXN100100,2025-11-06,Office Supplies,Office Depot,131.33,Devon Patel,Finance,60010,CC-102,Office Supplies - Office Depot
+TXN100352,2025-11-21,Consulting,FreelancerX,2076.35,Devon Patel,Finance,60040,CC-194,Consulting - FreelancerX
+TXN100381,2026-03-15,Meals & Entertainment,Local Restaurant,54.85,Grace Kim,HR,60060,CC-131,Meals & Entertainment - Local Restaurant
+TXN100129,2026-03-29,Consulting,Accenture,2589.7,Grace Kim,HR,60040,CC-172,Consulting - Accenture
+TXN100024,2026-03-14,Software/SaaS,Atlassian,113.26,Alice Chen,Engineering,60020,CC-141,Software/SaaS - Atlassian
+TXN100148,2025-11-02,Marketing,Google Ads,1070.58,Grace Kim,HR,60030,CC-128,Marketing - Google Ads
+TXN100021,2026-04-12,Consulting,Deloitte,4210.47,Frank Lee,Engineering,60040,CC-137,Consulting - Deloitte
+TXN100191,2026-02-20,Utilities,AT&T,254.32,Devon Patel,Finance,60070,CC-112,Utilities - AT&T
+TXN100488,2026-03-03,Consulting,Boston Consulting,16185.04,Frank Lee,Engineering,60040,CC-162,Consulting - Boston Consulting
+TXN100095,2026-02-07,Travel,United Airlines,1211.86,Alice Chen,Engineering,60000,CC-182,Travel - United Airlines
+TXN100439,2026-01-22,Meals & Entertainment,Cheesecake Factory,97.06,Hugo Bauer,Sales,60060,CC-155,Meals & Entertainment - Cheesecake Factory
+TXN100496,2026-04-12,Office Supplies,Amazon Business,318.55,Bob Martinez,Sales,60010,CC-185,Office Supplies - Amazon Business
+TXN100133,2026-01-11,Marketing,HubSpot,1711.87,Erin O'Brien,Operations,60030,CC-109,Marketing - HubSpot
+TXN100228,2025-12-02,Travel,Delta,552.85,Grace Kim,HR,60000,CC-190,Travel - Delta
+TXN100011,2026-03-15,Software/SaaS,Slack,685.06,Devon Patel,Finance,60020,CC-159,Software/SaaS - Slack
+TXN100417,2026-03-20,Meals & Entertainment,DoorDash,8.7,Hugo Bauer,Sales,60060,CC-181,Meals & Entertainment - DoorDash
+TXN100435,2026-01-06,Consulting,McKinsey,4414.04,Hugo Bauer,Sales,60040,CC-108,Consulting - McKinsey
+TXN100182,2026-01-31,Meals & Entertainment,Starbucks,178.45,Bob Martinez,Sales,60060,CC-101,Meals & Entertainment - Starbucks
+TXN100423,2026-02-05,Equipment,Dell,1244.87,Carol Davis,Marketing,60050,CC-164,Equipment - Dell
+TXN100361,2026-03-01,Software/SaaS,Slack,236.92,Frank Lee,Engineering,60020,CC-100,Software/SaaS - Slack
+TXN100287,2026-02-21,Consulting,McKinsey,4454.16,Grace Kim,HR,60040,CC-188,Consulting - McKinsey
+TXN100107,2026-04-17,Meals & Entertainment,DoorDash,35.28,Frank Lee,Engineering,60060,CC-164,Meals & Entertainment - DoorDash
+TXN100316,2026-03-22,Meals & Entertainment,Cheesecake Factory,122.76,Bob Martinez,Sales,60060,CC-130,Meals & Entertainment - Cheesecake Factory
+TXN100135,2026-04-13,Marketing,Facebook Ads,713.92,Carol Davis,Marketing,60030,CC-118,Marketing - Facebook Ads
+TXN100308,2025-12-01,Marketing,Mailchimp,698.18,Erin O'Brien,Operations,60030,CC-168,Marketing - Mailchimp
+TXN100334,2026-03-27,Utilities,Comcast,338.62,Devon Patel,Finance,60070,CC-174,Utilities - Comcast
+TXN100360,2025-11-21,Meals & Entertainment,DoorDash,117.99,Grace Kim,HR,60060,CC-123,Meals & Entertainment - DoorDash
+TXN100284,2026-03-06,Equipment,CDW,2308.53,Frank Lee,Engineering,60050,CC-134,Equipment - CDW
+TXN100298,2026-01-19,Utilities,Comcast,495.9,Frank Lee,Engineering,60070,CC-170,Utilities - Comcast
+TXN100414,2026-02-08,Consulting,Accenture,5691.28,Bob Martinez,Sales,60040,CC-151,Consulting - Accenture
+TXN100168,2026-03-28,Meals & Entertainment,Local Restaurant,62.9,Carol Davis,Marketing,60060,CC-159,Meals & Entertainment - Local Restaurant
+TXN100235,2025-11-18,Software/SaaS,Atlassian,419.89,Bob Martinez,Sales,60020,CC-165,Software/SaaS - Atlassian
+TXN100000,2025-12-26,Office Supplies,Staples,151.69,Carol Davis,Marketing,60010,CC-186,Office Supplies - Staples
+TXN100299,2026-01-14,Consulting,McKinsey,4930.98,Carol Davis,Marketing,60040,CC-146,Consulting - McKinsey
+TXN100002,2025-11-05,Office Supplies,Quill,129.29,Devon Patel,Finance,60010,CC-128,Office Supplies - Quill
+TXN100348,2026-03-14,Marketing,LinkedIn Ads,1242.31,Devon Patel,Finance,60030,CC-106,Marketing - LinkedIn Ads
+TXN100388,2026-03-21,Marketing,HubSpot,787.92,Carol Davis,Marketing,60030,CC-171,Marketing - HubSpot
+TXN100394,2026-02-01,Equipment,CDW,543.81,Bob Martinez,Sales,60050,CC-192,Equipment - CDW
+TXN100386,2025-12-28,Travel,Delta,1415.7,Frank Lee,Engineering,60000,CC-176,Travel - Delta
+TXN100273,2025-12-16,Meals & Entertainment,GrubHub,49.32,Bob Martinez,Sales,60060,CC-146,Meals & Entertainment - GrubHub
+TXN100294,2025-11-28,Equipment,Apple,1187.0,Alice Chen,Engineering,60050,CC-163,Equipment - Apple
+TXN100465,2026-03-29,Meals & Entertainment,Cheesecake Factory,39.07,Bob Martinez,Sales,60060,CC-145,Meals & Entertainment - Cheesecake Factory
+TXN100354,2026-03-05,Travel,Hilton,1131.58,Carol Davis,Marketing,60000,CC-137,Travel - Hilton
+TXN100387,2025-12-29,Equipment,Apple,3212.5,Erin O'Brien,Operations,60050,CC-184,Equipment - Apple
+TXN100038,2026-02-25,Utilities,Comcast,382.42,Devon Patel,Finance,60070,CC-156,Utilities - Comcast
+TXN100246,2026-04-04,Utilities,AT&T,447.33,Carol Davis,Marketing,60070,CC-147,Utilities - AT&T
+TXN100375,2026-04-27,Equipment,CDW,2283.92,Bob Martinez,Sales,60050,CC-107,Equipment - CDW
+TXN100194,2025-11-04,Marketing,Facebook Ads,690.98,Alice Chen,Engineering,60030,CC-131,Marketing - Facebook Ads
+TXN100463,2026-01-21,Equipment,B&H Photo,2624.66,Devon Patel,Finance,60050,CC-114,Equipment - B&H Photo
+TXN100230,2025-11-18,Travel,Delta,563.9,Frank Lee,Engineering,60000,CC-154,Travel - Delta
+TXN100389,2025-11-11,Utilities,Verizon,383.17,Frank Lee,Engineering,60070,CC-167,Utilities - Verizon
+TXN100050,2025-11-17,Consulting,Boston Consulting,250.0,Alice Chen,Engineering,60040,CC-179,Consulting - Boston Consulting
+TXN100392,2026-03-22,Software/SaaS,GitHub,602.37,Grace Kim,HR,60020,CC-171,Software/SaaS - GitHub
+TXN100404,2026-03-06,Marketing,Facebook Ads,372.77,Frank Lee,Engineering,60030,CC-197,Marketing - Facebook Ads
+TXN100434,2026-02-04,Marketing,LinkedIn Ads,870.98,Carol Davis,Marketing,60030,CC-134,Marketing - LinkedIn Ads
+TXN100411,2026-03-15,Travel,United Airlines,997.93,Grace Kim,HR,60000,CC-102,Travel - United Airlines
+TXN100306,2026-01-15,Travel,Marriott,1015.58,Carol Davis,Marketing,60000,CC-141,Travel - Marriott
+TXN100118,2026-02-15,Equipment,Best Buy,650.82,Frank Lee,Engineering,60050,CC-189,Equipment - Best Buy
+TXN100062,2025-12-29,Meals & Entertainment,Local Restaurant,172.07,Carol Davis,Marketing,60060,CC-152,Meals & Entertainment - Local Restaurant
+TXN100485,2026-03-06,Software/SaaS,Notion,1476.84,Devon Patel,Finance,60020,CC-186,Software/SaaS - Notion
+TXN100189,2026-03-29,Meals & Entertainment,Starbucks,149.9,Carol Davis,Marketing,60060,CC-183,Meals & Entertainment - Starbucks
+TXN100454,2025-11-20,Utilities,PG&E,415.7,Bob Martinez,Sales,60070,CC-144,Utilities - PG&E
+TXN100350,2025-12-09,Software/SaaS,AWS,702.74,Grace Kim,HR,60020,CC-160,Software/SaaS - AWS
+TXN100391,2025-12-30,Utilities,AT&T,272.67,Devon Patel,Finance,60070,CC-190,Utilities - AT&T
+TXN100074,2026-02-04,Software/SaaS,Atlassian,555.69,Carol Davis,Marketing,60020,CC-172,Software/SaaS - Atlassian
+TXN100446,2026-02-15,Consulting,Deloitte,5161.64,Grace Kim,HR,60040,CC-157,Consulting - Deloitte
+TXN100094,2026-02-10,Meals & Entertainment,Starbucks,51.16,Carol Davis,Marketing,60060,CC-116,Meals & Entertainment - Starbucks
+TXN100464,2026-04-11,Consulting,FreelancerX,3780.86,Frank Lee,Engineering,60040,CC-149,Consulting - FreelancerX
+TXN100305,2025-12-01,Equipment,Apple,1933.13,Carol Davis,Marketing,60050,CC-155,Equipment - Apple
+TXN100339,2026-03-22,Marketing,HubSpot,1753.2,Frank Lee,Engineering,60030,CC-167,Marketing - HubSpot
+TXN100479,2026-03-04,Utilities,Verizon,653.08,Bob Martinez,Sales,60070,CC-115,Utilities - Verizon
+TXN100159,2025-11-24,Utilities,Comcast,350.64,Hugo Bauer,Sales,60070,CC-192,Utilities - Comcast
+TXN100144,2026-02-10,Office Supplies,Quill,106.06,Alice Chen,Engineering,60010,CC-152,Office Supplies - Quill
+TXN100238,2025-12-14,Software/SaaS,GitHub,468.73,Hugo Bauer,Sales,60020,CC-196,Software/SaaS - GitHub
+TXN100467,2026-01-18,Software/SaaS,Slack,203.46,Bob Martinez,Sales,60020,CC-139,Software/SaaS - Slack
+TXN100366,2025-12-08,Marketing,Mailchimp,1261.93,Hugo Bauer,Sales,60030,CC-147,Marketing - Mailchimp
+TXN100286,2025-11-19,Software/SaaS,AWS,281.08,Frank Lee,Engineering,60020,CC-137,Software/SaaS - AWS
+TXN100322,2026-03-31,Equipment,Best Buy,2042.63,Hugo Bauer,Sales,60050,CC-168,Equipment - Best Buy
+TXN100278,2026-04-23,Equipment,B&H Photo,1668.75,Hugo Bauer,Sales,60050,CC-180,Equipment - B&H Photo
+TXN100281,2026-03-18,Meals & Entertainment,Cheesecake Factory,97.73,Hugo Bauer,Sales,60060,CC-104,Meals & Entertainment - Cheesecake Factory
+TXN100026,2025-11-19,Marketing,HubSpot,2350.13,Bob Martinez,Sales,60030,CC-108,Marketing - HubSpot
+TXN100257,2026-02-12,Travel,Hilton,757.02,Frank Lee,Engineering,60000,CC-192,Travel - Hilton
+TXN100410,2026-04-05,Equipment,B&H Photo,2426.43,Hugo Bauer,Sales,60050,CC-102,Equipment - B&H Photo
+TXN100319,2026-03-26,Equipment,Apple,1831.22,Frank Lee,Engineering,60050,CC-197,Equipment - Apple
+TXN100427,2025-11-20,Meals & Entertainment,Local Restaurant,152.86,Erin O'Brien,Operations,60060,CC-191,Meals & Entertainment - Local Restaurant
+TXN100138,2026-02-17,Utilities,AT&T,250.15,Frank Lee,Engineering,60070,CC-103,Utilities - AT&T
+TXN100163,2026-04-09,Marketing,LinkedIn Ads,960.6,Erin O'Brien,Operations,60030,CC-195,Marketing - LinkedIn Ads
+TXN100213,2025-11-12,Meals & Entertainment,GrubHub,56.81,Erin O'Brien,Operations,60060,CC-139,Meals & Entertainment - GrubHub
+TXN100430,2025-12-02,Utilities,PG&E,309.59,Bob Martinez,Sales,60070,CC-155,Utilities - PG&E
+TXN100164,2026-04-10,Office Supplies,Quill,103.33,Bob Martinez,Sales,60010,CC-121,Office Supplies - Quill
+TXN100114,2026-03-31,Equipment,CDW,1689.02,Erin O'Brien,Operations,60050,CC-101,Equipment - CDW
+TXN100214,2025-12-08,Equipment,Apple,2162.68,Hugo Bauer,Sales,60050,CC-113,Equipment - Apple
+TXN100018,2025-12-08,Office Supplies,Quill,122.89,Carol Davis,Marketing,60010,CC-176,Office Supplies - Quill
+TXN100091,2026-03-28,Meals & Entertainment,GrubHub,124.3,Alice Chen,Engineering,60060,CC-148,Meals & Entertainment - GrubHub
+TXN100076,2026-04-15,Marketing,HubSpot,485.15,Frank Lee,Engineering,60030,CC-156,Marketing - HubSpot
+TXN100449,2026-04-16,Marketing,LinkedIn Ads,652.05,Frank Lee,Engineering,60030,CC-182,Marketing - LinkedIn Ads
+TXN100186,2026-04-27,Office Supplies,Quill,90.53,Erin O'Brien,Operations,60010,CC-114,Office Supplies - Quill
+TXN100444,2026-02-25,Software/SaaS,GitHub,344.84,Devon Patel,Finance,60020,CC-137,Software/SaaS - GitHub
+TXN100023,2026-04-11,Consulting,McKinsey,5148.66,Devon Patel,Finance,60040,CC-147,Consulting - McKinsey
+TXN100340,2026-03-15,Meals & Entertainment,GrubHub,77.98,Frank Lee,Engineering,60060,CC-145,Meals & Entertainment - GrubHub
+TXN100469,2026-03-26,Software/SaaS,GitHub,730.73,Grace Kim,HR,60020,CC-123,Software/SaaS - GitHub
+TXN100022,2026-01-05,Meals & Entertainment,GrubHub,92.2,Carol Davis,Marketing,60060,CC-113,Meals & Entertainment - GrubHub
+TXN100001,2026-03-30,Office Supplies,Staples,125.02,Grace Kim,HR,60010,CC-103,Office Supplies - Staples
+TXN100415,2026-03-23,Utilities,PG&E,292.12,Devon Patel,Finance,60070,CC-138,Utilities - PG&E
+TXN100116,2026-03-04,Marketing,Google Ads,884.81,Hugo Bauer,Sales,60030,CC-111,Marketing - Google Ads
+TXN100420,2026-04-23,Utilities,Comcast,325.99,Erin O'Brien,Operations,60070,CC-122,Utilities - Comcast
+TXN100293,2026-03-25,Office Supplies,Amazon Business,83.01,Carol Davis,Marketing,60010,CC-150,Office Supplies - Amazon Business
+TXN100482,2026-03-21,Equipment,Best Buy,4717.79,Carol Davis,Marketing,60050,CC-190,Equipment - Best Buy
+TXN100130,2025-12-22,Travel,Hertz,495.16,Devon Patel,Finance,60000,CC-184,Travel - Hertz
+TXN100080,2026-02-28,Software/SaaS,GitHub,598.13,Bob Martinez,Sales,60020,CC-153,Software/SaaS - GitHub
+TXN100480,2026-03-12,Marketing,Mailchimp,3377.78,Frank Lee,Engineering,60030,CC-180,Marketing - Mailchimp
+TXN100320,2026-03-06,Software/SaaS,GitHub,209.51,Erin O'Brien,Operations,60020,CC-102,Software/SaaS - GitHub
+TXN100290,2026-04-03,Software/SaaS,Microsoft 365,556.17,Hugo Bauer,Sales,60020,CC-116,Software/SaaS - Microsoft 365
+TXN100408,2026-04-09,Travel,United Airlines,875.98,Devon Patel,Finance,60000,CC-190,Travel - United Airlines
+TXN100333,2026-02-13,Office Supplies,Staples,87.36,Erin O'Brien,Operations,60010,CC-176,Office Supplies - Staples
+TXN100395,2025-11-12,Marketing,HubSpot,119.67,Erin O'Brien,Operations,60030,CC-186,Marketing - HubSpot
+TXN100492,2026-03-28,Software/SaaS,AWS,1389.69,Frank Lee,Engineering,60020,CC-197,Software/SaaS - AWS
+TXN100233,2025-11-26,Meals & Entertainment,Starbucks,95.79,Devon Patel,Finance,60060,CC-175,Meals & Entertainment - Starbucks
+TXN100325,2026-01-30,Marketing,Google Ads,629.42,Erin O'Brien,Operations,60030,CC-149,Marketing - Google Ads
+TXN100039,2025-11-11,Office Supplies,Staples,139.64,Alice Chen,Engineering,60010,CC-196,Office Supplies - Staples
+TXN100295,2026-03-22,Meals & Entertainment,Cheesecake Factory,59.41,Bob Martinez,Sales,60060,CC-199,Meals & Entertainment - Cheesecake Factory
+TXN100379,2025-11-29,Equipment,CDW,385.94,Carol Davis,Marketing,60050,CC-150,Equipment - CDW
+TXN100032,2025-12-29,Travel,Hilton,918.24,Erin O'Brien,Operations,60000,CC-162,Travel - Hilton
+TXN100268,2025-11-19,Utilities,AT&T,342.22,Alice Chen,Engineering,60070,CC-127,Utilities - AT&T
+TXN100139,2025-12-27,Office Supplies,Amazon Business,140.59,Alice Chen,Engineering,60010,CC-173,Office Supplies - Amazon Business
+TXN100438,2025-10-31,Marketing,Facebook Ads,887.51,Grace Kim,HR,60030,CC-179,Marketing - Facebook Ads
+TXN100171,2026-04-24,Meals & Entertainment,Starbucks,63.66,Erin O'Brien,Operations,60060,CC-138,Meals & Entertainment - Starbucks
+TXN100015,2026-02-08,Utilities,PG&E,404.73,Hugo Bauer,Sales,60070,CC-133,Utilities - PG&E
+TXN100060,2026-01-31,Software/SaaS,Zoom,397.13,Alice Chen,Engineering,60020,CC-126,Software/SaaS - Zoom
+TXN100137,2026-04-24,Utilities,Verizon,401.94,Erin O'Brien,Operations,60070,CC-134,Utilities - Verizon
+TXN100064,2025-11-26,Marketing,Google Ads,1088.72,Grace Kim,HR,60030,CC-160,Marketing - Google Ads
+TXN100190,2026-01-09,Office Supplies,Amazon Business,147.77,Alice Chen,Engineering,60010,CC-127,Office Supplies - Amazon Business
+TXN100085,2026-03-19,Meals & Entertainment,Local Restaurant,19.63,Hugo Bauer,Sales,60060,CC-195,Meals & Entertainment - Local Restaurant
+TXN100132,2026-04-24,Office Supplies,Amazon Business,142.71,Hugo Bauer,Sales,60010,CC-104,Office Supplies - Amazon Business
+TXN100264,2026-02-22,Meals & Entertainment,DoorDash,182.11,Frank Lee,Engineering,60060,CC-153,Meals & Entertainment - DoorDash
+TXN100267,2026-01-11,Travel,Hilton,897.37,Hugo Bauer,Sales,60000,CC-117,Travel - Hilton
+TXN100177,2026-01-17,Travel,United Airlines,559.82,Hugo Bauer,Sales,60000,CC-174,Travel - United Airlines
+TXN100254,2025-11-18,Marketing,Google Ads,1247.94,Erin O'Brien,Operations,60030,CC-164,Marketing - Google Ads
+TXN100083,2025-11-11,Utilities,Comcast,447.62,Devon Patel,Finance,60070,CC-158,Utilities - Comcast
+TXN100005,2025-11-22,Office Supplies,Staples,85.44,Grace Kim,HR,60010,CC-145,Office Supplies - Staples
+TXN100477,2026-03-11,Equipment,B&H Photo,4738.29,Alice Chen,Engineering,60050,CC-169,Equipment - B&H Photo
+TXN100475,2026-04-10,Consulting,Boston Consulting,13083.97,Carol Davis,Marketing,60040,CC-172,Consulting - Boston Consulting
+TXN100495,2026-04-09,Software/SaaS,Notion,1579.29,Carol Davis,Marketing,60020,CC-135,Software/SaaS - Notion
+TXN100089,2026-02-05,Marketing,LinkedIn Ads,1740.25,Carol Davis,Marketing,60030,CC-108,Marketing - LinkedIn Ads
+TXN100344,2026-03-18,Consulting,Boston Consulting,4324.48,Grace Kim,HR,60040,CC-144,Consulting - Boston Consulting
+TXN100028,2025-12-23,Consulting,Accenture,2040.22,Devon Patel,Finance,60040,CC-151,Consulting - Accenture
+TXN100425,2026-01-21,Meals & Entertainment,Cheesecake Factory,107.74,Alice Chen,Engineering,60060,CC-157,Meals & Entertainment - Cheesecake Factory
+TXN100313,2026-01-14,Meals & Entertainment,DoorDash,90.87,Hugo Bauer,Sales,60060,CC-188,Meals & Entertainment - DoorDash
+TXN100232,2026-04-06,Meals & Entertainment,Cheesecake Factory,133.93,Hugo Bauer,Sales,60060,CC-111,Meals & Entertainment - Cheesecake Factory
+TXN100059,2025-11-18,Office Supplies,Staples,156.7,Carol Davis,Marketing,60010,CC-147,Office Supplies - Staples
+TXN100222,2025-11-19,Software/SaaS,GitHub,451.78,Erin O'Brien,Operations,60020,CC-184,Software/SaaS - GitHub
+TXN100472,2026-03-03,Travel,Marriott,1307.77,Carol Davis,Marketing,60000,CC-149,Travel - Marriott
+TXN100125,2025-12-16,Equipment,Best Buy,1566.08,Alice Chen,Engineering,60050,CC-161,Equipment - Best Buy
+TXN100029,2026-02-19,Equipment,Dell,1334.58,Hugo Bauer,Sales,60050,CC-131,Equipment - Dell
+TXN100407,2026-03-13,Travel,Lyft,1240.68,Alice Chen,Engineering,60000,CC-109,Travel - Lyft
+TXN100223,2026-03-03,Meals & Entertainment,Starbucks,74.03,Hugo Bauer,Sales,60060,CC-134,Meals & Entertainment - Starbucks
+TXN100357,2026-01-07,Utilities,Comcast,318.6,Devon Patel,Finance,60070,CC-142,Utilities - Comcast
+TXN100033,2026-03-17,Marketing,Mailchimp,1022.42,Carol Davis,Marketing,60030,CC-173,Marketing - Mailchimp
+TXN100329,2026-01-23,Software/SaaS,Atlassian,676.47,Hugo Bauer,Sales,60020,CC-158,Software/SaaS - Atlassian
+TXN100462,2025-11-15,Marketing,Mailchimp,1474.92,Bob Martinez,Sales,60030,CC-123,Marketing - Mailchimp
+TXN100324,2026-02-09,Equipment,CDW,1558.1,Alice Chen,Engineering,60050,CC-171,Equipment - CDW
+TXN100413,2026-03-13,Office Supplies,Office Depot,112.68,Carol Davis,Marketing,60010,CC-124,Office Supplies - Office Depot
+TXN100484,2026-04-11,Meals & Entertainment,Local Restaurant,377.82,Carol Davis,Marketing,60060,CC-131,Meals & Entertainment - Local Restaurant
+TXN100167,2025-12-12,Software/SaaS,Microsoft 365,614.87,Carol Davis,Marketing,60020,CC-178,Software/SaaS - Microsoft 365
+TXN100363,2026-01-04,Travel,Hilton,1053.51,Frank Lee,Engineering,60000,CC-130,Travel - Hilton
+TXN100079,2026-04-20,Marketing,LinkedIn Ads,788.0,Erin O'Brien,Operations,60030,CC-125,Marketing - LinkedIn Ads
+TXN100104,2026-02-03,Travel,Hilton,1180.69,Grace Kim,HR,60000,CC-125,Travel - Hilton
+TXN100261,2026-01-02,Software/SaaS,AWS,488.8,Alice Chen,Engineering,60020,CC-161,Software/SaaS - AWS
+TXN100040,2025-12-23,Marketing,Google Ads,1547.27,Grace Kim,HR,60030,CC-121,Marketing - Google Ads
+TXN100158,2026-03-07,Software/SaaS,Notion,395.09,Frank Lee,Engineering,60020,CC-112,Software/SaaS - Notion
+TXN100365,2026-04-24,Consulting,Accenture,2859.16,Bob Martinez,Sales,60040,CC-147,Consulting - Accenture
+TXN100142,2025-11-25,Equipment,Best Buy,983.33,Carol Davis,Marketing,60050,CC-152,Equipment - Best Buy
+TXN100078,2026-04-17,Software/SaaS,Microsoft 365,361.45,Frank Lee,Engineering,60020,CC-196,Software/SaaS - Microsoft 365
+TXN100452,2026-03-27,Marketing,HubSpot,475.92,Devon Patel,Finance,60030,CC-147,Marketing - HubSpot
+TXN100275,2026-04-10,Travel,Hertz,748.72,Grace Kim,HR,60000,CC-132,Travel - Hertz
+TXN100274,2026-03-08,Office Supplies,Quill,168.0,Alice Chen,Engineering,60010,CC-160,Office Supplies - Quill
+TXN100327,2026-02-02,Meals & Entertainment,GrubHub,49.66,Frank Lee,Engineering,60060,CC-146,Meals & Entertainment - GrubHub
+TXN100042,2026-03-21,Consulting,McKinsey,250.0,Hugo Bauer,Sales,60040,CC-124,Consulting - McKinsey
+TXN100205,2025-11-15,Software/SaaS,Zoom,236.28,Carol Davis,Marketing,60020,CC-179,Software/SaaS - Zoom
+TXN100359,2026-03-24,Consulting,McKinsey,1841.95,Devon Patel,Finance,60040,CC-178,Consulting - McKinsey
+TXN100493,2026-03-19,Travel,United Airlines,1728.59,Hugo Bauer,Sales,60000,CC-115,Travel - United Airlines
+TXN100212,2026-01-22,Travel,Uber,542.19,Bob Martinez,Sales,60000,CC-145,Travel - Uber
+TXN100256,2025-12-15,Software/SaaS,AWS,355.18,Carol Davis,Marketing,60020,CC-156,Software/SaaS - AWS
+TXN100364,2025-12-09,Travel,Hilton,695.23,Grace Kim,HR,60000,CC-164,Travel - Hilton
+TXN100456,2026-04-26,Utilities,AT&T,329.0,Hugo Bauer,Sales,60070,CC-108,Utilities - AT&T
+TXN100146,2025-12-21,Utilities,PG&E,254.68,Erin O'Brien,Operations,60070,CC-136,Utilities - PG&E
+TXN100259,2026-02-27,Consulting,Accenture,4426.15,Devon Patel,Finance,60040,CC-186,Consulting - Accenture
+TXN100203,2025-11-14,Travel,Lyft,821.96,Hugo Bauer,Sales,60000,CC-151,Travel - Lyft
+TXN100030,2026-03-20,Marketing,Mailchimp,1313.84,Devon Patel,Finance,60030,CC-128,Marketing - Mailchimp
+TXN100020,2025-11-01,Consulting,FreelancerX,9296.82,Bob Martinez,Sales,60040,CC-196,Consulting - FreelancerX
+TXN100110,2026-03-02,Consulting,Boston Consulting,1313.29,Hugo Bauer,Sales,60040,CC-193,Consulting - Boston Consulting
+TXN100134,2026-04-08,Marketing,HubSpot,2138.07,Devon Patel,Finance,60030,CC-114,Marketing - HubSpot
+TXN100007,2026-04-08,Consulting,FreelancerX,2579.01,Frank Lee,Engineering,60040,CC-124,Consulting - FreelancerX
+TXN100034,2026-02-11,Utilities,Comcast,353.98,Devon Patel,Finance,60070,CC-112,Utilities - Comcast
+TXN100300,2025-12-04,Marketing,HubSpot,1490.63,Devon Patel,Finance,60030,CC-103,Marketing - HubSpot
+TXN100008,2026-01-12,Office Supplies,Office Depot,147.58,Bob Martinez,Sales,60010,CC-112,Office Supplies - Office Depot
+TXN100037,2025-11-26,Equipment,Apple,75.0,Devon Patel,Finance,60050,CC-124,Equipment - Apple
+TXN100241,2026-01-17,Office Supplies,Quill,137.98,Hugo Bauer,Sales,60010,CC-104,Office Supplies - Quill
+TXN100088,2026-03-17,Consulting,McKinsey,5193.61,Bob Martinez,Sales,60040,CC-119,Consulting - McKinsey
+TXN100349,2026-02-12,Office Supplies,Quill,179.48,Frank Lee,Engineering,60010,CC-112,Office Supplies - Quill
+TXN100279,2025-12-03,Software/SaaS,AWS,335.66,Bob Martinez,Sales,60020,CC-199,Software/SaaS - AWS
+TXN100187,2025-11-10,Software/SaaS,Zoom,282.01,Alice Chen,Engineering,60020,CC-163,Software/SaaS - Zoom
+TXN100215,2026-03-21,Equipment,Dell,2004.76,Frank Lee,Engineering,60050,CC-197,Equipment - Dell
+TXN100291,2025-12-29,Office Supplies,Amazon Business,113.51,Frank Lee,Engineering,60010,CC-149,Office Supplies - Amazon Business
+TXN100198,2025-11-05,Consulting,Deloitte,5318.65,Carol Davis,Marketing,60040,CC-145,Consulting - Deloitte
+TXN100491,2026-04-08,Marketing,Facebook Ads,3890.49,Erin O'Brien,Operations,60030,CC-170,Marketing - Facebook Ads
+TXN100162,2026-03-03,Meals & Entertainment,GrubHub,157.31,Alice Chen,Engineering,60060,CC-108,Meals & Entertainment - GrubHub
+TXN100184,2026-02-02,Consulting,McKinsey,1473.61,Bob Martinez,Sales,60040,CC-160,Consulting - McKinsey
+TXN100006,2026-02-24,Equipment,B&H Photo,490.33,Bob Martinez,Sales,60050,CC-110,Equipment - B&H Photo
+TXN100270,2025-12-30,Consulting,FreelancerX,5087.01,Grace Kim,HR,60040,CC-158,Consulting - FreelancerX
+TXN100489,2026-03-04,Equipment,B&H Photo,4822.11,Bob Martinez,Sales,60050,CC-181,Equipment - B&H Photo
+TXN100304,2025-11-17,Office Supplies,Quill,144.65,Hugo Bauer,Sales,60010,CC-187,Office Supplies - Quill
+TXN100326,2026-04-07,Utilities,PG&E,355.86,Bob Martinez,Sales,60070,CC-112,Utilities - PG&E
+TXN100255,2026-04-17,Travel,Lyft,1000.68,Frank Lee,Engineering,60000,CC-179,Travel - Lyft
+TXN100123,2026-03-20,Travel,Hilton,1024.34,Erin O'Brien,Operations,60000,CC-116,Travel - Hilton
+TXN100057,2025-10-30,Travel,Lyft,842.76,Frank Lee,Engineering,60000,CC-116,Travel - Lyft
+TXN100197,2026-01-08,Travel,Marriott,585.15,Carol Davis,Marketing,60000,CC-169,Travel - Marriott
+TXN100253,2025-12-23,Software/SaaS,Notion,283.34,Frank Lee,Engineering,60020,CC-162,Software/SaaS - Notion
+TXN100122,2025-11-02,Consulting,Accenture,5195.1,Carol Davis,Marketing,60040,CC-105,Consulting - Accenture
+TXN100406,2026-03-04,Equipment,CDW,2042.83,Carol Davis,Marketing,60050,CC-182,Equipment - CDW
+TXN100401,2026-01-19,Utilities,AT&T,420.5,Devon Patel,Finance,60070,CC-140,Utilities - AT&T
+TXN100027,2025-12-01,Software/SaaS,Atlassian,596.04,Hugo Bauer,Sales,60020,CC-121,Software/SaaS - Atlassian
+TXN100432,2026-04-01,Office Supplies,Quill,109.26,Frank Lee,Engineering,60010,CC-101,Office Supplies - Quill
+TXN100151,2026-02-05,Software/SaaS,Atlassian,441.09,Devon Patel,Finance,60020,CC-165,Software/SaaS - Atlassian
+TXN100200,2026-03-13,Consulting,Deloitte,8425.5,Bob Martinez,Sales,60040,CC-160,Consulting - Deloitte
+TXN100382,2025-11-27,Utilities,Verizon,313.5,Alice Chen,Engineering,60070,CC-178,Utilities - Verizon
+TXN100096,2025-11-11,Meals & Entertainment,Starbucks,126.62,Erin O'Brien,Operations,60060,CC-141,Meals & Entertainment - Starbucks
+TXN100260,2026-02-04,Utilities,PG&E,286.79,Grace Kim,HR,60070,CC-125,Utilities - PG&E
+TXN100310,2025-11-06,Equipment,Dell,1995.07,Bob Martinez,Sales,60050,CC-182,Equipment - Dell
+TXN100265,2026-02-08,Travel,Marriott,1185.2,Frank Lee,Engineering,60000,CC-149,Travel - Marriott
+TXN100105,2026-03-30,Office Supplies,Staples,97.36,Devon Patel,Finance,60010,CC-189,Office Supplies - Staples
+TXN100154,2026-03-02,Utilities,AT&T,407.65,Frank Lee,Engineering,60070,CC-170,Utilities - AT&T
+TXN100337,2026-02-14,Equipment,B&H Photo,1835.66,Carol Davis,Marketing,60050,CC-188,Equipment - B&H Photo
+TXN100013,2025-12-27,Travel,Lyft,1482.94,Alice Chen,Engineering,60000,CC-140,Travel - Lyft
+TXN100353,2025-12-13,Travel,Lyft,364.66,Grace Kim,HR,60000,CC-122,Travel - Lyft
+TXN100398,2025-12-31,Office Supplies,Quill,118.69,Devon Patel,Finance,60010,CC-130,Office Supplies - Quill
+TXN100145,2025-12-17,Travel,Delta,1077.39,Frank Lee,Engineering,60000,CC-196,Travel - Delta
+TXN100311,2026-04-14,Consulting,FreelancerX,2632.28,Devon Patel,Finance,60040,CC-153,Consulting - FreelancerX
+TXN100458,2025-12-31,Office Supplies,Office Depot,109.41,Carol Davis,Marketing,60010,CC-142,Office Supplies - Office Depot
+TXN100428,2026-04-10,Office Supplies,Quill,140.14,Carol Davis,Marketing,60010,CC-140,Office Supplies - Quill
+TXN100307,2026-01-26,Marketing,Google Ads,567.76,Erin O'Brien,Operations,60030,CC-132,Marketing - Google Ads
+TXN100283,2026-02-18,Equipment,B&H Photo,2857.8,Grace Kim,HR,60050,CC-149,Equipment - B&H Photo
+TXN100127,2025-11-20,Consulting,Deloitte,2998.4,Devon Patel,Finance,60040,CC-171,Consulting - Deloitte
+TXN100043,2025-12-24,Consulting,FreelancerX,7569.93,Alice Chen,Engineering,60040,CC-194,Consulting - FreelancerX
+TXN100330,2026-01-21,Software/SaaS,Slack,260.93,Frank Lee,Engineering,60020,CC-150,Software/SaaS - Slack
+TXN100141,2026-04-10,Meals & Entertainment,DoorDash,59.07,Hugo Bauer,Sales,60060,CC-160,Meals & Entertainment - DoorDash
+TXN100126,2025-11-17,Office Supplies,Office Depot,137.72,Alice Chen,Engineering,60010,CC-119,Office Supplies - Office Depot
+TXN100445,2026-02-11,Office Supplies,Office Depot,74.03,Hugo Bauer,Sales,60010,CC-181,Office Supplies - Office Depot
+TXN100405,2026-04-12,Utilities,Verizon,453.79,Hugo Bauer,Sales,60070,CC-121,Utilities - Verizon
+TXN100161,2026-04-07,Equipment,Dell,2047.16,Grace Kim,HR,60050,CC-142,Equipment - Dell
+TXN100219,2025-11-16,Meals & Entertainment,DoorDash,68.0,Carol Davis,Marketing,60060,CC-111,Meals & Entertainment - DoorDash
+TXN100459,2026-02-25,Meals & Entertainment,Starbucks,63.12,Devon Patel,Finance,60060,CC-180,Meals & Entertainment - Starbucks
+TXN100487,2026-03-09,Utilities,Verizon,608.12,Bob Martinez,Sales,60070,CC-165,Utilities - Verizon
+TXN100373,2026-03-22,Travel,Hilton,562.92,Hugo Bauer,Sales,60000,CC-139,Travel - Hilton
+TXN100301,2026-03-20,Equipment,B&H Photo,1823.91,Frank Lee,Engineering,60050,CC-170,Equipment - B&H Photo
+TXN100063,2025-12-14,Travel,Lyft,773.76,Frank Lee,Engineering,60000,CC-152,Travel - Lyft
+TXN100473,2026-02-11,Utilities,Verizon,202.62,Hugo Bauer,Sales,60070,CC-190,Utilities - Verizon
+TXN100071,2026-01-31,Marketing,Google Ads,1719.48,Grace Kim,HR,60030,CC-185,Marketing - Google Ads
+TXN100051,2025-11-17,Office Supplies,Amazon Business,144.43,Devon Patel,Finance,60010,CC-116,Office Supplies - Amazon Business
+TXN100044,2026-03-28,Travel,Delta,848.78,Hugo Bauer,Sales,60000,CC-167,Travel - Delta
+TXN100111,2026-01-20,Consulting,Deloitte,1711.98,Devon Patel,Finance,60040,CC-135,Consulting - Deloitte
+TXN100494,2026-04-28,Software/SaaS,Slack,1314.77,Grace Kim,HR,60020,CC-188,Software/SaaS - Slack
+TXN100226,2025-12-21,Meals & Entertainment,Local Restaurant,106.7,Erin O'Brien,Operations,60060,CC-198,Meals & Entertainment - Local Restaurant
+TXN100351,2026-04-14,Utilities,AT&T,353.29,Devon Patel,Finance,60070,CC-141,Utilities - AT&T
+TXN100315,2026-01-18,Software/SaaS,AWS,623.68,Frank Lee,Engineering,60020,CC-144,Software/SaaS - AWS
+TXN100210,2026-02-28,Consulting,Deloitte,4108.6,Bob Martinez,Sales,60040,CC-110,Consulting - Deloitte
+TXN100077,2026-04-20,Utilities,Verizon,394.93,Devon Patel,Finance,60070,CC-194,Utilities - Verizon
+TXN100383,2025-12-30,Travel,United Airlines,1035.06,Devon Patel,Finance,60000,CC-112,Travel - United Airlines
+TXN100321,2026-02-07,Office Supplies,Office Depot,120.52,Hugo Bauer,Sales,60010,CC-127,Office Supplies - Office Depot
+TXN100109,2025-12-08,Utilities,PG&E,356.63,Grace Kim,HR,60070,CC-193,Utilities - PG&E
+TXN100369,2025-11-18,Equipment,Dell,445.72,Bob Martinez,Sales,60050,CC-170,Equipment - Dell
+TXN100179,2025-12-02,Marketing,Mailchimp,940.81,Frank Lee,Engineering,60030,CC-164,Marketing - Mailchimp
+TXN100225,2026-03-13,Utilities,Comcast,310.69,Erin O'Brien,Operations,60070,CC-128,Utilities - Comcast
+TXN100084,2026-03-22,Software/SaaS,Notion,544.23,Frank Lee,Engineering,60020,CC-156,Software/SaaS - Notion
+TXN100332,2025-11-03,Utilities,AT&T,332.69,Frank Lee,Engineering,60070,CC-186,Utilities - AT&T
+TXN100312,2026-01-12,Travel,Uber,456.71,Erin O'Brien,Operations,60000,CC-131,Travel - Uber
+TXN100499,2026-03-22,Utilities,Verizon,608.71,Devon Patel,Finance,60070,CC-101,Utilities - Verizon
+TXN100288,2026-01-28,Utilities,AT&T,335.98,Grace Kim,HR,60070,CC-181,Utilities - AT&T
+TXN100271,2025-11-27,Office Supplies,Staples,140.33,Hugo Bauer,Sales,60010,CC-180,Office Supplies - Staples
+TXN100035,2026-01-28,Meals & Entertainment,Starbucks,146.54,Grace Kim,HR,60060,CC-159,Meals & Entertainment - Starbucks
+TXN100073,2026-01-21,Meals & Entertainment,Cheesecake Factory,38.43,Grace Kim,HR,60060,CC-170,Meals & Entertainment - Cheesecake Factory
+TXN100346,2026-01-03,Office Supplies,Office Depot,95.39,Hugo Bauer,Sales,60010,CC-125,Office Supplies - Office Depot
+TXN100328,2026-03-07,Software/SaaS,Microsoft 365,525.07,Alice Chen,Engineering,60020,CC-104,Software/SaaS - Microsoft 365
+TXN100068,2025-12-14,Travel,United Airlines,1406.22,Erin O'Brien,Operations,60000,CC-113,Travel - United Airlines
+TXN100447,2026-03-28,Utilities,Verizon,467.15,Grace Kim,HR,60070,CC-169,Utilities - Verizon
+TXN100385,2026-02-19,Meals & Entertainment,GrubHub,114.65,Devon Patel,Finance,60060,CC-127,Meals & Entertainment - GrubHub
+TXN100416,2025-11-07,Office Supplies,Quill,75.04,Bob Martinez,Sales,60010,CC-148,Office Supplies - Quill
+TXN100396,2026-03-29,Travel,Uber,976.73,Devon Patel,Finance,60000,CC-126,Travel - Uber
+TXN100195,2026-03-23,Software/SaaS,Microsoft 365,240.37,Devon Patel,Finance,60020,CC-197,Software/SaaS - Microsoft 365
+TXN100070,2026-01-03,Office Supplies,Quill,80.62,Alice Chen,Engineering,60010,CC-100,Office Supplies - Quill
+TXN100153,2025-10-30,Consulting,Accenture,3665.88,Erin O'Brien,Operations,60040,CC-175,Consulting - Accenture
+TXN100451,2025-11-26,Meals & Entertainment,DoorDash,62.16,Alice Chen,Engineering,60060,CC-133,Meals & Entertainment - DoorDash
+TXN100188,2025-12-03,Office Supplies,Quill,188.47,Grace Kim,HR,60010,CC-147,Office Supplies - Quill
+TXN100160,2025-12-08,Software/SaaS,GitHub,203.73,Bob Martinez,Sales,60020,CC-133,Software/SaaS - GitHub
+TXN100483,2026-04-11,Consulting,McKinsey,13509.6,Bob Martinez,Sales,60040,CC-196,Consulting - McKinsey
+TXN100052,2026-02-01,Equipment,Apple,2554.62,Erin O'Brien,Operations,60050,CC-156,Equipment - Apple
+TXN100412,2026-03-07,Consulting,McKinsey,3237.01,Grace Kim,HR,60040,CC-113,Consulting - McKinsey
+TXN100374,2025-12-24,Travel,United Airlines,440.74,Bob Martinez,Sales,60000,CC-154,Travel - United Airlines
+TXN100045,2025-11-13,Software/SaaS,Notion,381.38,Bob Martinez,Sales,60020,CC-123,Software/SaaS - Notion
+TXN100196,2025-12-28,Marketing,LinkedIn Ads,259.1,Frank Lee,Engineering,60030,CC-176,Marketing - LinkedIn Ads
+TXN100117,2025-12-25,Consulting,McKinsey,2048.06,Grace Kim,HR,60040,CC-139,Consulting - McKinsey
+TXN100036,2025-11-24,Travel,Uber,476.61,Alice Chen,Engineering,60000,CC-193,Travel - Uber
+TXN100244,2025-12-07,Marketing,HubSpot,903.82,Alice Chen,Engineering,60030,CC-113,Marketing - HubSpot
+TXN100067,2026-01-27,Consulting,FreelancerX,8185.04,Grace Kim,HR,60040,CC-142,Consulting - FreelancerX
+TXN100355,2025-11-01,Travel,Delta,845.0,Erin O'Brien,Operations,60000,CC-177,Travel - Delta
+TXN100216,2026-03-22,Consulting,FreelancerX,1432.99,Alice Chen,Engineering,60040,CC-184,Consulting - FreelancerX
+TXN100440,2026-04-25,Software/SaaS,GitHub,365.26,Devon Patel,Finance,60020,CC-140,Software/SaaS - GitHub
+TXN100061,2026-04-18,Marketing,Facebook Ads,1274.89,Bob Martinez,Sales,60030,CC-199,Marketing - Facebook Ads
+TXN100418,2026-02-18,Travel,Delta,816.04,Frank Lee,Engineering,60000,CC-112,Travel - Delta
+TXN100175,2026-01-11,Utilities,AT&T,452.13,Devon Patel,Finance,60070,CC-128,Utilities - AT&T
+TXN100356,2026-02-23,Office Supplies,Office Depot,152.54,Hugo Bauer,Sales,60010,CC-164,Office Supplies - Office Depot
+TXN100004,2025-12-08,Software/SaaS,Notion,391.61,Devon Patel,Finance,60020,CC-143,Software/SaaS - Notion

@@ -1,0 +1,29 @@
+# Render blueprint for the Expense Anomaly Agent.
+# See https://render.com/docs/blueprint-spec for the full spec.
+#
+# After connecting this repo in Render, this file lets Render auto-create
+# the web service with the right build/start commands. You still need to
+# add GROQ_API_KEY and DATABASE_URL as secret env vars in the dashboard
+# (they're marked sync:false here so Render doesn't auto-fill them).
+services:
+  - type: web
+    name: expense-anomaly-agent-beta
+    runtime: python
+    plan: free                  # 750 hours/month, sleeps after 15 min idle
+    region: oregon              # change if you prefer
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python proxy_server.py"
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: GROQ_API_KEY
+        sync: false             # set in Render dashboard - never commit
+      - key: DATABASE_URL
+        sync: false             # set in Render dashboard - never commit
+      - key: DEFAULT_ADMIN_USERNAME
+        value: admin
+      - key: DEFAULT_ADMIN_PASSWORD
+        sync: false             # set in Render dashboard before first deploy
+      - key: HOST
+        value: "0.0.0.0"
