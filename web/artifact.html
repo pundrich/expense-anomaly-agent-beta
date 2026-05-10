@@ -835,9 +835,35 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
         </div>
 
         <div class="rules-panel full">
-          <h3>Policy text (free-form)</h3>
-          <p class="desc">Plain-language policy that the AI applies on every classification and wizard turn. Be specific about pre-approval thresholds, vendor expectations, and escalation rules.</p>
-          <textarea id="r-policy" style="min-height:160px"></textarea>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:6px">
+            <div style="flex:1">
+              <h3 style="margin-bottom:2px">Company expense policy</h3>
+              <p class="desc" style="margin-bottom:0">Write your policy in plain English. The AI uses this on <b>every</b> classification and every wizard turn. The more specific you are about thresholds, approvals, and what counts as a violation, the better the AI can match your judgment.</p>
+            </div>
+            <button class="btn small" id="rw-open-inline" type="button" style="white-space:nowrap;flex-shrink:0">
+              ✨ Draft with AI wizard
+            </button>
+          </div>
+          <details style="margin:10px 0 8px;font-size:12px;color:#4b5563">
+            <summary style="cursor:pointer;color:#1f4e78;font-weight:500">What should I write here? (click for examples)</summary>
+            <div style="margin-top:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;line-height:1.6">
+              Good policy text includes <b>specific dollar thresholds</b>, <b>who must approve what</b>, and <b>vendor / category expectations</b>. Examples:
+              <ul style="margin:6px 0 0 18px;padding:0">
+                <li>"Travel above $1,500 requires director sign-off; above $5,000 requires CFO sign-off."</li>
+                <li>"Marketing spend must reference the documented quarterly campaign plan or be flagged YELLOW."</li>
+                <li>"Office Supplies vendors (Staples, Amazon Business) cannot be justified as Marketing campaigns - flag RED."</li>
+                <li>"Any explanation citing 'personal', 'forgot', 'unaware', or 'mistake' should be RED automatically."</li>
+                <li>"Conference and training expenses must reference an approved training plan or PO; otherwise YELLOW."</li>
+              </ul>
+              <div style="margin-top:8px;color:#6b7280">If you don't know where to start, click <b>✨ Draft with AI wizard</b> above - describe a single audit concern in your own words and the wizard will draft a structured policy addition for you.</div>
+            </div>
+          </details>
+          <textarea id="r-policy" style="min-height:160px"
+            placeholder="e.g. Pre-approval is required for any single expense above $2,500. Conference and training expenses must reference an approved training plan or PO. Marketing spend must align with the documented quarterly campaign plan. Vendor must be consistent with the GL category - an Office Supplies vendor cannot be justified as a Marketing campaign."></textarea>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:11px;color:#6b7280">
+            <span>Tip: write in short, declarative sentences. The AI weights this heavily.</span>
+            <span id="r-policy-counter">0 chars</span>
+          </div>
         </div>
 
         <div class="rules-panel full">
@@ -1157,8 +1183,21 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
 
     <div id="rw-step-strategy">
       <div class="field">
-        <label>Your strategy</label>
-        <textarea id="rw-strategy" rows="4" placeholder='e.g. "Catch employees who try to circumvent the $5,000 approval threshold by submitting two $3K invoices for the same vendor in the same week."'></textarea>
+        <label>What audit concern should this rule catch?</label>
+        <p style="font-size:12px;color:#6b7280;margin:0 0 8px;line-height:1.5">
+          Describe the behaviour you want to flag in plain English - one specific situation, not a list.
+          The wizard will ask 2-4 short follow-up questions, then propose a structured rule you can accept.
+        </p>
+        <textarea id="rw-strategy" rows="4"
+          placeholder='Examples (pick ONE concern per rule):
+
+• "Employees splitting big purchases into multiple smaller invoices to dodge the $5K approval threshold."
+
+• "Vendor names that don\'t match the spending category - e.g. a Best Buy charge logged as Marketing."
+
+• "Travel expenses on weekends when there is no business event scheduled."
+
+• "Anyone in Sales claiming hotel upgrades or resort fees without documented client approval."'></textarea>
       </div>
       <div class="actions">
         <button class="btn ghost" id="rw-cancel">Cancel</button>
@@ -2157,6 +2196,7 @@ function setView(name) {
   const el = document.getElementById("view-" + name);
   if (el) el.classList.add("active");
   if (name === "auditor") renderAuditor();
+  if (name === "researcher" && typeof renderResearcherOverview === "function") renderResearcherOverview();
 }
 
 function applyHashRoute() {
@@ -2165,9 +2205,18 @@ function applyHashRoute() {
     setView(h);
     return;
   }
+  if (h === "researcher") {
+    if (currentUser && (currentUser.is_researcher || currentUser.is_admin)) {
+      setView("researcher");
+    } else {
+      // not authorised to view researcher dashboard - send back to role picker
+      location.hash = "#/role";
+    }
+    return;
+  }
   // No hash - try saved role, else show picker
   const saved = localStorage.getItem(ROLE_KEY);
-  if (saved === "employee" || saved === "auditor") {
+  if (saved === "employee" || saved === "auditor" || saved === "researcher") {
     location.hash = "#/" + saved;
   } else {
     location.hash = "#/role";
@@ -4098,8 +4147,7 @@ renderTreatments = async function() {
 // =============================================================
 let ruleWizState = { strategy: "", history: [] };
 
-const rwOpenBtn = document.getElementById("rw-open");
-if (rwOpenBtn) rwOpenBtn.addEventListener("click", () => {
+function openRuleWizard() {
   ruleWizState = { strategy: "", history: [] };
   document.getElementById("rw-strategy").value = "";
   document.getElementById("rw-history").innerHTML = "";
@@ -4107,7 +4155,31 @@ if (rwOpenBtn) rwOpenBtn.addEventListener("click", () => {
   document.getElementById("rw-step-interview").style.display = "none";
   document.getElementById("rw-step-propose").style.display = "none";
   document.getElementById("rule-wizard-modal").classList.add("show");
-});
+}
+const rwOpenBtn = document.getElementById("rw-open");
+if (rwOpenBtn) rwOpenBtn.addEventListener("click", openRuleWizard);
+const rwOpenInlineBtn = document.getElementById("rw-open-inline");
+if (rwOpenInlineBtn) rwOpenInlineBtn.addEventListener("click", openRuleWizard);
+
+// live char counter for the policy textarea
+const rPolicy = document.getElementById("r-policy");
+const rPolicyCounter = document.getElementById("r-policy-counter");
+if (rPolicy && rPolicyCounter) {
+  const updatePolicyCounter = () => {
+    rPolicyCounter.textContent = rPolicy.value.length + " chars";
+  };
+  rPolicy.addEventListener("input", updatePolicyCounter);
+  // also update after rules load
+  const _origPaintRulesEditor = window.paintRulesEditor || (typeof paintRulesEditor === "function" ? paintRulesEditor : null);
+  if (_origPaintRulesEditor) {
+    window.paintRulesEditor = function(...args) {
+      const r = _origPaintRulesEditor.apply(this, args);
+      updatePolicyCounter();
+      return r;
+    };
+  }
+  updatePolicyCounter();
+}
 document.getElementById("rw-cancel").addEventListener("click", () => document.getElementById("rule-wizard-modal").classList.remove("show"));
 document.getElementById("rw-cancel-2").addEventListener("click", () => document.getElementById("rule-wizard-modal").classList.remove("show"));
 
