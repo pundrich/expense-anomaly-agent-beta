@@ -1951,8 +1951,13 @@ async function doLogin(username, password) {
   const j = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(j.error || ("login failed (" + r.status + ")"));
   setToken(j.token);
-  currentUser = { username: j.username, is_admin: j.is_admin };
+  currentUser = {
+    username: j.username,
+    is_admin: !!j.is_admin,
+    is_researcher: !!j.is_researcher,
+  };
   paintUserBars();
+  if (typeof paintResearcherTile === "function") paintResearcherTile();
   return j;
 }
 
