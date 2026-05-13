@@ -413,10 +413,23 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
 
 .rules-actions {
   display: flex; gap: 10px; align-items: center; justify-content: flex-end;
-  margin-top: 18px; padding: 14px 0 0; border-top: 1px solid #e5e7eb;
+  margin-top: 18px; padding: 14px 16px;
+  border-top: 1px solid #e5e7eb; border-radius: 10px;
+  background: white;
+  position: sticky; bottom: 12px;
+  box-shadow: 0 -4px 12px rgba(0,0,0,.06), 0 0 0 1px #e5e7eb;
+  z-index: 5;
 }
 .rules-actions .saved-msg { color: #16a34a; font-size: 12px; opacity: 0; transition: opacity .25s; }
 .rules-actions .saved-msg.show { opacity: 1; }
+.rules-actions .dirty-badge {
+  font-size: 11px; padding: 3px 8px; border-radius: 999px;
+  background: #fef3c7; color: #92400e; font-weight: 600;
+  display: none;
+}
+.rules-actions.is-dirty .dirty-badge { display: inline-block; }
+.rules-actions.is-dirty #r-save { background: #b45309; }
+.rules-actions.is-dirty #r-save:hover { background: #92400e; }
 
 /* ======== wizard ======== */
 .wizard-modal {
@@ -874,12 +887,13 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
         </div>
       </div>
 
-      <div class="rules-actions" style="justify-content:space-between">
+      <div class="rules-actions" id="r-actions" style="justify-content:space-between">
         <button class="btn ghost" id="rw-open">+ Create rule with AI wizard</button>
         <div style="display:flex;gap:10px;align-items:center">
+          <span class="dirty-badge">● Unsaved changes</span>
           <span class="saved-msg" id="r-saved-msg">Saved.</span>
           <button class="btn ghost" id="r-revert">Discard changes</button>
-          <button class="btn" id="r-save">Save rules</button>
+          <button class="btn" id="r-save" title="Save (Cmd+S)">Save rules</button>
         </div>
       </div>
     </div>
@@ -4162,6 +4176,42 @@ const rwOpenBtn = document.getElementById("rw-open");
 if (rwOpenBtn) rwOpenBtn.addEventListener("click", openRuleWizard);
 const rwOpenInlineBtn = document.getElementById("rw-open-inline");
 if (rwOpenInlineBtn) rwOpenInlineBtn.addEventListener("click", openRuleWizard);
+
+// dirty-state tracking for the rules editor
+function markRulesDirty() {
+  const el = document.getElementById("r-actions");
+  if (el) el.classList.add("is-dirty");
+  document.getElementById("r-saved-msg")?.classList.remove("show");
+}
+function markRulesClean() {
+  const el = document.getElementById("r-actions");
+  if (el) el.classList.remove("is-dirty");
+}
+["r-z","r-max-turns","r-policy","r-red","r-green"].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener("input", markRulesDirty);
+});
+// caps table inputs are added dynamically - delegate
+const rCaps = document.getElementById("r-caps");
+if (rCaps) rCaps.addEventListener("input", markRulesDirty);
+// Cmd/Ctrl + S inside the rules tab triggers save
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+    const auditTabRules = document.getElementById("audit-tab-rules");
+    if (auditTabRules && auditTabRules.style.display !== "none" && document.getElementById("view-auditor").classList.contains("active")) {
+      e.preventDefault();
+      document.getElementById("r-save")?.click();
+    }
+  }
+});
+// hook clean state into save-button
+const _rSaveBtnInit = document.getElementById("r-save");
+if (_rSaveBtnInit) {
+  // wrap the click handler so we can clear dirty on success
+  _rSaveBtnInit.addEventListener("click", () => {
+    setTimeout(markRulesClean, 50); // optimistic; r-save has its own success path
+  });
+}
 
 // live char counter for the policy textarea
 const rPolicy = document.getElementById("r-policy");
