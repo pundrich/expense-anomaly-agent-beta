@@ -351,14 +351,13 @@ def reset_failures(ip: str) -> None:
 
 DEFAULT_RULES = {
     "z_threshold": 2.0,
-    "policy_text": (
-        "Pre-approval is required for any single expense above $2,500. "
-        "Conference and training expenses must reference an approved training plan or PO. "
-        "Marketing spend must align with the documented quarterly campaign plan. "
-        "Any explanation that cites 'personal', 'forgot', 'unaware', or 'mistake' should be RED. "
-        "Vendor must be consistent with the GL category - e.g. an Office Supplies vendor cannot be "
-        "justified as a Marketing campaign."
-    ),
+    "policy_text": "",
+    "active_rules_seed": [
+        "Pre-approval is required for any single expense above $2,500.",
+        "Conference and training expenses must reference an approved training plan or PO.",
+        "Marketing spend must align with the documented quarterly campaign plan.",
+        "Vendor must be consistent with the GL category - an Office Supplies vendor cannot be justified as a Marketing campaign.",
+    ],
     "auto_red_keywords": [
         "personal", "forgot", "unaware", "mistake", "no reason",
         "didn't realize", "did not realize", "didn't know",
@@ -386,12 +385,42 @@ DEFAULT_RULES = {
 def load_rules() -> dict:
     data = db_load_rules()
     if data is None:
-        # seed defaults on first run
-        db_save_rules(DEFAULT_RULES)
-        return dict(DEFAULT_RULES)
+        # seed defaults on first run, including a starter set of Active rules
+        seed = dict(DEFAULT_RULES)
+        seed["active_rules"] = [
+            {
+                "id": "r_seed_" + secrets.token_hex(3),
+                "text": text,
+                "source": "manual",
+                "created_at": int(time.time()),
+                "created_by": "(default)",
+                "enabled": True,
+            }
+            for text in DEFAULT_RULES.get("active_rules_seed", [])
+        ]
+        seed["policy_text_migrated_at"] = int(time.time())  # mark migration done so we don't re-run
+        db_save_rules(seed)
+        return seed
     # backfill any missing keys so the schema can evolve
     for k, v in DEFAULT_RULES.items():
         data.setdefault(k, v)
+    # ---- one-time migration: collapse the legacy free-form "policy_text"
+    # into the active_rules list so there's a single source of truth ----
+    legacy = (data.get("policy_text") or "").strip()
+    if legacy and not data.get("policy_text_migrated_at"):
+        existing = data.get("active_rules") or []
+        existing.append({
+            "id": "r_" + secrets.token_hex(6),
+            "text": legacy[:1000],
+            "source": "manual",
+            "created_at": int(time.time()),
+            "created_by": "(migrated from preamble)",
+            "enabled": True,
+        })
+        data["active_rules"] = existing
+        data["policy_text"] = ""
+        data["policy_text_migrated_at"] = int(time.time())
+        db_save_rules(data)
     return data
 
 
@@ -822,10 +851,8 @@ def _wizard_system_prompt(txn: dict, rules: dict, max_turns: int, turns_used: in
     ) or "  (none configured)"
     auto_red = ", ".join(rules.get("auto_red_keywords") or []) or "(none)"
     auto_green = ", ".join(rules.get("auto_green_keywords") or []) or "(none)"
-    policy = (rules.get("policy_text") or "").strip() or "(no additional policy)"
     enabled_rules = [r for r in (rules.get("active_rules") or []) if r.get("enabled", True)]
-    rule_lines = "\n".join(f"  - {r.get('text','')}" for r in enabled_rules) or "  (no individual rules configured)"
-    policy = f"{policy}\n\nIndividual active rules:\n{rule_lines}"
+    policy = "\n".join(f"  - {r.get('text','')}" for r in enabled_rules) or "  (no rules configured)"
 
     base = f"""You are an internal-controls reviewer interviewing an employee whose expense was \
 flagged. Your job is to ask the SHORTEST sequence of questions that will let you \
@@ -894,8 +921,7 @@ Conversation so far:
 {history_text}
 
 Current rules in effect:
-- Policy text: {current_rules.get('policy_text','')[:500]}
-- Active individual rules:
+- Active rules:
 {chr(10).join('  - ' + (r.get('text','') or '') for r in (current_rules.get('active_rules') or []) if r.get('enabled', True)) or '  (none)'}
 - Auto-RED phrases: {', '.join(current_rules.get('auto_red_keywords', [])) or '(none)'}
 - Auto-GREEN phrases: {', '.join(current_rules.get('auto_green_keywords', [])) or '(none)'}
@@ -931,14 +957,14 @@ Current ruleset (for context, do not duplicate):
 
 Output a JSON object describing the new rule additions. Only include fields \
 that change. Allowed top-level keys:
-  - policy_text_addition: a short paragraph to append to policy_text
+  - policy_text_addition: a short, single-sentence rule to add to the active rules list
   - new_auto_red_keywords: list of phrases to add
   - new_auto_green_keywords: list of phrases to add
   - new_category_caps: list of {{category, soft_cap, hard_cap}}
   - rationale: one short sentence explaining what this rule catches
 
 Reply with ONLY a JSON object, no prose, no code fences. Example shape:
-{{"policy_text_addition":"...","new_auto_red_keywords":["..."],"rationale":"..."}}
+{{"policy_text_addition":"Travel above $1500 requires director sign-off","new_auto_red_keywords":["..."],"rationale":"..."}}
 """
 
 

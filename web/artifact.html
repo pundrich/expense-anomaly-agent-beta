@@ -903,54 +903,40 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
         </div>
 
         <div class="rules-panel full">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:6px">
-            <div style="flex:1">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:6px;flex-wrap:wrap">
+            <div style="flex:1;min-width:220px">
               <h3 style="margin-bottom:2px">Active rules</h3>
               <p class="desc" style="margin-bottom:0">Each rule is sent to the AI on every classification. Toggle the switch to disable a rule without deleting it (useful for A/B testing). The "Source" tag shows where the rule came from.</p>
             </div>
-            <button class="btn small ghost" id="rules-add-btn" type="button" style="white-space:nowrap;flex-shrink:0">
-              + Add rule manually
-            </button>
+            <div style="display:flex;gap:8px;flex-shrink:0">
+              <button class="btn small ghost" id="rules-add-btn" type="button" style="white-space:nowrap">
+                + Add rule manually
+              </button>
+              <button class="btn small" id="rw-open-inline" type="button" style="white-space:nowrap">
+                ✨ Draft with AI wizard
+              </button>
+            </div>
           </div>
+          <details style="margin:8px 0 12px;font-size:12px;color:#4b5563">
+            <summary style="cursor:pointer;color:#1f4e78;font-weight:500">What makes a good rule? (click for examples)</summary>
+            <div style="margin-top:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;line-height:1.6">
+              Good rules are <b>specific</b>, <b>actionable</b>, and <b>declarative</b>. They name dollar thresholds, who must approve, or vendor/category expectations. Examples:
+              <ul style="margin:6px 0 0 18px;padding:0">
+                <li>"Travel above $1,500 requires director sign-off; above $5,000 requires CFO sign-off."</li>
+                <li>"Marketing spend must reference the documented quarterly campaign plan or be flagged YELLOW."</li>
+                <li>"Office Supplies vendors (Staples, Amazon Business) cannot be justified as Marketing campaigns - flag RED."</li>
+                <li>"Conference and training expenses must reference an approved training plan or PO; otherwise YELLOW."</li>
+              </ul>
+              <div style="margin-top:8px;color:#6b7280">If you don't know where to start, click <b>✨ Draft with AI wizard</b> above - describe a single audit concern in your own words and the wizard will draft a structured rule for you.</div>
+            </div>
+          </details>
           <div class="rule-list" id="rules-list-container">
-            <div class="rule-empty">No active rules yet. Click <b>+ Add rule manually</b> to add one, or use the <b>✨ Draft with AI wizard</b> button below to have the AI propose one.</div>
+            <div class="rule-empty">No active rules yet. Click <b>+ Add rule manually</b> to add one, or use the <b>✨ Draft with AI wizard</b> button to have the AI propose one.</div>
           </div>
           <div class="rule-add-row" id="rules-add-row" style="display:none">
             <input id="rules-add-input" type="text" placeholder='e.g. "Travel above $1,500 requires director sign-off"' />
             <button class="btn small" id="rules-add-save" type="button">Add</button>
             <button class="btn small ghost" id="rules-add-cancel" type="button">Cancel</button>
-          </div>
-        </div>
-
-        <div class="rules-panel full">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:6px">
-            <div style="flex:1">
-              <h3 style="margin-bottom:2px">Company expense policy</h3>
-              <p class="desc" style="margin-bottom:0">Write your policy in plain English. The AI uses this on <b>every</b> classification and every wizard turn. The more specific you are about thresholds, approvals, and what counts as a violation, the better the AI can match your judgment.</p>
-            </div>
-            <button class="btn small" id="rw-open-inline" type="button" style="white-space:nowrap;flex-shrink:0">
-              ✨ Draft with AI wizard
-            </button>
-          </div>
-          <details style="margin:10px 0 8px;font-size:12px;color:#4b5563">
-            <summary style="cursor:pointer;color:#1f4e78;font-weight:500">What should I write here? (click for examples)</summary>
-            <div style="margin-top:8px;padding:10px 12px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;line-height:1.6">
-              Good policy text includes <b>specific dollar thresholds</b>, <b>who must approve what</b>, and <b>vendor / category expectations</b>. Examples:
-              <ul style="margin:6px 0 0 18px;padding:0">
-                <li>"Travel above $1,500 requires director sign-off; above $5,000 requires CFO sign-off."</li>
-                <li>"Marketing spend must reference the documented quarterly campaign plan or be flagged YELLOW."</li>
-                <li>"Office Supplies vendors (Staples, Amazon Business) cannot be justified as Marketing campaigns - flag RED."</li>
-                <li>"Any explanation citing 'personal', 'forgot', 'unaware', or 'mistake' should be RED automatically."</li>
-                <li>"Conference and training expenses must reference an approved training plan or PO; otherwise YELLOW."</li>
-              </ul>
-              <div style="margin-top:8px;color:#6b7280">If you don't know where to start, click <b>✨ Draft with AI wizard</b> above - describe a single audit concern in your own words and the wizard will draft a structured policy addition for you.</div>
-            </div>
-          </details>
-          <textarea id="r-policy" style="min-height:160px"
-            placeholder="e.g. Pre-approval is required for any single expense above $2,500. Conference and training expenses must reference an approved training plan or PO. Marketing spend must align with the documented quarterly campaign plan. Vendor must be consistent with the GL category - an Office Supplies vendor cannot be justified as a Marketing campaign."></textarea>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:11px;color:#6b7280">
-            <span>Tip: write in short, declarative sentences. The AI weights this heavily.</span>
-            <span id="r-policy-counter">0 chars</span>
           </div>
         </div>
 
@@ -965,14 +951,11 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
         </div>
       </div>
 
-      <div class="rules-actions" id="r-actions" style="justify-content:space-between">
-        <button class="btn ghost" id="rw-open">+ Create rule with AI wizard</button>
-        <div style="display:flex;gap:10px;align-items:center">
-          <span class="dirty-badge">● Unsaved changes</span>
-          <span class="saved-msg" id="r-saved-msg">Saved.</span>
-          <button class="btn ghost" id="r-revert">Discard changes</button>
-          <button class="btn" id="r-save" title="Save (Cmd+S)">Save rules</button>
-        </div>
+      <div class="rules-actions" id="r-actions" style="justify-content:flex-end">
+        <span class="dirty-badge">● Unsaved changes</span>
+        <span class="saved-msg" id="r-saved-msg">Saved.</span>
+        <button class="btn ghost" id="r-revert">Discard changes</button>
+        <button class="btn" id="r-save" title="Save (Cmd+S)">Save rules</button>
       </div>
     </div>
   </div>
@@ -1444,7 +1427,6 @@ function classifyByRules(explanation) {
 // =============================================================
 function buildPrompt(row, explanation) {
   const rules = currentRules || {};
-  const policy = (rules.policy_text || "").trim();
   const cap = (rules.category_caps || []).find(c => c.category === row.category);
   const capLine = cap ? `Category cap for ${row.category}: soft $${cap.soft_cap}, hard $${cap.hard_cap}.` : "";
   const redKw = (rules.auto_red_keywords || []).join(", ");
@@ -1452,7 +1434,7 @@ function buildPrompt(row, explanation) {
   const enabledRules = (rules.active_rules || []).filter(r => r.enabled !== false);
   const ruleLines = enabledRules.length
     ? enabledRules.map(r => "  - " + r.text).join("\n")
-    : "  (no individual rules configured)";
+    : "  (no rules configured)";
 
   return `You are an internal-controls reviewer for a finance team. A transaction was flagged because its amount is unusually high relative to its category. Apply the company policy below and classify the expense as GREEN, YELLOW, or RED.
 
@@ -1460,12 +1442,9 @@ function buildPrompt(row, explanation) {
   YELLOW = Plausible but lacks supporting detail, missing pre-approval, or only mildly concerning.
   RED    = Insufficient, evasive, or policy-violating. Possible misuse, unauthorised spend, or personal expense.
 
-Company policy preamble:
-${policy || "(no additional policy)"}
-${capLine}
-
-Individual active rules:
+Active company rules:
 ${ruleLines}
+${capLine}
 
 Phrases that should lean RED if they appear: ${redKw || "(none)"}
 Phrases that should lean GREEN if backed by detail: ${greenKw || "(none)"}
@@ -3055,10 +3034,8 @@ ${exec}
           <td class="muted">${r.enabled !== false ? "Enabled" : "Disabled"}</td>
         </tr>`).join("")
       }</table>`
-    : '<p class="muted">No individual rules configured.</p>'}
-  <p style="margin-top:12px"><b>Policy preamble:</b></p>
-  <p class="muted">${escSvg(rules.policy_text || "(none)")}</p>
-  <p><b>Auto-RED phrases:</b> <span class="muted">${escSvg((rules.auto_red_keywords || []).join(", ") || "(none)")}</span></p>
+    : '<p class="muted">No active rules configured.</p>'}
+  <p style="margin-top:12px"><b>Auto-RED phrases:</b> <span class="muted">${escSvg((rules.auto_red_keywords || []).join(", ") || "(none)")}</span></p>
   <p><b>Auto-GREEN phrases:</b> <span class="muted">${escSvg((rules.auto_green_keywords || []).join(", ") || "(none)")}</span></p>
 </div>
 
@@ -3136,7 +3113,6 @@ async function loadRules() {
 function paintRulesEditor() {
   $("#r-z").value = currentRules.z_threshold;
   $("#r-max-turns").value = currentRules.wizard_max_turns;
-  $("#r-policy").value = currentRules.policy_text || "";
   $("#r-red").value = (currentRules.auto_red_keywords || []).join("\n");
   $("#r-green").value = (currentRules.auto_green_keywords || []).join("\n");
   paintCapsTable();
@@ -3332,7 +3308,7 @@ $("#r-save").addEventListener("click", async () => {
   const payload = {
     z_threshold: Number.isFinite(z) ? z : currentRules.z_threshold,
     wizard_max_turns: Number.isFinite(turns) ? turns : currentRules.wizard_max_turns,
-    policy_text: $("#r-policy").value,
+    policy_text: "",  // legacy field, kept empty - all rules now live in active_rules
     auto_red_keywords: splitLines($("#r-red").value),
     auto_green_keywords: splitLines($("#r-green").value),
     category_caps: (currentRules.category_caps || []).filter(c => c.category && (c.soft_cap || c.hard_cap)),
@@ -4411,8 +4387,9 @@ function openRuleWizard() {
   document.getElementById("rw-step-propose").style.display = "none";
   document.getElementById("rule-wizard-modal").classList.add("show");
 }
-const rwOpenBtn = document.getElementById("rw-open");
-if (rwOpenBtn) rwOpenBtn.addEventListener("click", openRuleWizard);
+// "rw-open" was the legacy bottom-of-page wizard button (removed when we
+//  consolidated everything into the Active rules panel). The inline button
+//  in the Active rules header is now the only entry point.
 const rwOpenInlineBtn = document.getElementById("rw-open-inline");
 if (rwOpenInlineBtn) rwOpenInlineBtn.addEventListener("click", openRuleWizard);
 
@@ -4426,7 +4403,7 @@ function markRulesClean() {
   const el = document.getElementById("r-actions");
   if (el) el.classList.remove("is-dirty");
 }
-["r-z","r-max-turns","r-policy","r-red","r-green"].forEach(id => {
+["r-z","r-max-turns","r-red","r-green"].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener("input", markRulesDirty);
 });
@@ -4452,25 +4429,8 @@ if (_rSaveBtnInit) {
   });
 }
 
-// live char counter for the policy textarea
-const rPolicy = document.getElementById("r-policy");
-const rPolicyCounter = document.getElementById("r-policy-counter");
-if (rPolicy && rPolicyCounter) {
-  const updatePolicyCounter = () => {
-    rPolicyCounter.textContent = rPolicy.value.length + " chars";
-  };
-  rPolicy.addEventListener("input", updatePolicyCounter);
-  // also update after rules load
-  const _origPaintRulesEditor = window.paintRulesEditor || (typeof paintRulesEditor === "function" ? paintRulesEditor : null);
-  if (_origPaintRulesEditor) {
-    window.paintRulesEditor = function(...args) {
-      const r = _origPaintRulesEditor.apply(this, args);
-      updatePolicyCounter();
-      return r;
-    };
-  }
-  updatePolicyCounter();
-}
+// (legacy: the policy-text counter was removed when we collapsed
+//  Company expense policy into the Active rules list.)
 document.getElementById("rw-cancel").addEventListener("click", () => document.getElementById("rule-wizard-modal").classList.remove("show"));
 document.getElementById("rw-cancel-2").addEventListener("click", () => document.getElementById("rule-wizard-modal").classList.remove("show"));
 
