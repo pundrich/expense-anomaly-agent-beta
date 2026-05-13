@@ -469,6 +469,57 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
 }
 .rule-add-row input:focus { outline: none; border-color: #1f4e78; }
 
+/* ======== rule metadata (expandable per rule) ======== */
+.rule-row .meta-toggle {
+  background: none; border: 0; cursor: pointer; color: #6b7280;
+  font-size: 11px; margin-top: 4px; padding: 2px 0;
+}
+.rule-row .meta-toggle:hover { color: #1f4e78; }
+.rule-row .meta-toggle::before { content: "▸ "; }
+.rule-row .meta-toggle.open::before { content: "▾ "; }
+.rule-row .meta-block {
+  display: none; margin-top: 8px; padding: 10px 12px;
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px;
+  font-size: 12px;
+}
+.rule-row .meta-block.open { display: block; }
+.rule-row .meta-block .row {
+  display: grid; grid-template-columns: 130px 1fr; gap: 8px 14px;
+  margin-bottom: 4px;
+}
+.rule-row .meta-block .row .k { color: #6b7280; }
+.rule-row .meta-block .row .v { color: #111827; font-variant-numeric: tabular-nums; }
+.rule-row .meta-block .empty { color: #9ca3af; font-style: italic; }
+.rule-row .actions button.reanalyze { color: #5b21b6; font-size: 12px; }
+.rule-row .actions button.reanalyze:hover { background: #ede9fe; color: #4c1d95; }
+
+/* ======== authorization matrix ======== */
+.auth-matrix {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.auth-matrix th {
+  text-align: left; padding: 8px 10px; background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb; color: #4b5563; font-size: 11px;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+.auth-matrix td {
+  padding: 8px 10px; border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+.auth-matrix .role-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 600; background: #ede9fe; color: #5b21b6;
+}
+.auth-matrix .threshold {
+  font-variant-numeric: tabular-nums; color: #1f2937;
+}
+.auth-matrix .source-rule {
+  font-size: 11px; color: #6b7280; max-width: 280px; line-height: 1.5;
+}
+.derived-note {
+  font-size: 11px; color: #9ca3af; font-style: italic; margin-top: 8px;
+}
+
 .rules-actions {
   display: flex; gap: 10px; align-items: center; justify-content: flex-end;
   margin-top: 18px; padding: 14px 16px;
@@ -941,13 +992,24 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
         </div>
 
         <div class="rules-panel full">
-          <h3>Per-category dollar caps</h3>
-          <p class="desc">Soft cap = warning level (YELLOW territory). Hard cap = should require explicit pre-approval (RED if absent).</p>
+          <h3>Per-category dollar caps <span style="font-size:11px;color:#9ca3af;font-weight:normal">(derived from Active rules)</span></h3>
+          <p class="desc">Soft cap = warning level (YELLOW territory). Hard cap = should require explicit pre-approval (RED if absent). <b>Editing a row rewrites the underlying rule</b> in the Active rules panel above - it's a single source of truth.</p>
           <table class="caps-table">
-            <thead><tr><th>Category</th><th>Soft cap ($)</th><th>Hard cap ($)</th><th></th></tr></thead>
+            <thead><tr><th>Category</th><th>Soft cap ($)</th><th>Hard cap ($)</th><th>Source rule</th><th></th></tr></thead>
             <tbody id="r-caps"></tbody>
           </table>
           <button class="btn small ghost" id="r-add-cap" style="margin-top:10px">+ Add category cap</button>
+          <p class="derived-note">Adding a cap here creates a new Active rule. Removing a row deletes the corresponding rule.</p>
+        </div>
+
+        <div class="rules-panel full">
+          <h3>Authorization matrix <span style="font-size:11px;color:#9ca3af;font-weight:normal">(derived from Active rules &middot; "Proper authorization of transactions and activities")</span></h3>
+          <p class="desc">Who in the organization can approve what, by category and dollar threshold. This is one of the seven Physical Control Activities (COSO 2013).</p>
+          <table class="auth-matrix">
+            <thead><tr><th>Authorizer</th><th>Category</th><th style="text-align:right">Soft cap</th><th style="text-align:right">Hard cap</th><th>Source rule</th></tr></thead>
+            <tbody id="r-auth-matrix"></tbody>
+          </table>
+          <p class="derived-note">This view is read-only - to change who authorizes what, edit the underlying rule above (or the Per-category caps row).</p>
         </div>
       </div>
 
@@ -1427,8 +1489,15 @@ function classifyByRules(explanation) {
 // =============================================================
 function buildPrompt(row, explanation) {
   const rules = currentRules || {};
-  const cap = (rules.category_caps || []).find(c => c.category === row.category);
-  const capLine = cap ? `Category cap for ${row.category}: soft $${cap.soft_cap}, hard $${cap.hard_cap}.` : "";
+  // Look for a matching cap in (a) any rule's metadata, (b) the legacy
+  // category_caps array if still present
+  const enabledRulesAll = (rules.active_rules || []).filter(r => r.enabled !== false);
+  const matchingRule = enabledRulesAll.find(r => (r.metadata || {}).category === row.category &&
+    ((r.metadata || {}).soft_threshold_usd || (r.metadata || {}).hard_threshold_usd));
+  const m = matchingRule ? matchingRule.metadata : null;
+  const cap = m ? { soft_cap: m.soft_threshold_usd, hard_cap: m.hard_threshold_usd }
+                : (rules.category_caps || []).find(c => c.category === row.category);
+  const capLine = cap ? `Category cap for ${row.category}: soft $${cap.soft_cap || "—"}, hard $${cap.hard_cap || "—"}.` : "";
   const redKw = (rules.auto_red_keywords || []).join(", ");
   const greenKw = (rules.auto_green_keywords || []).join(", ");
   const enabledRules = (rules.active_rules || []).filter(r => r.enabled !== false);
@@ -3115,8 +3184,9 @@ function paintRulesEditor() {
   $("#r-max-turns").value = currentRules.wizard_max_turns;
   $("#r-red").value = (currentRules.auto_red_keywords || []).join("\n");
   $("#r-green").value = (currentRules.auto_green_keywords || []).join("\n");
-  paintCapsTable();
   paintActiveRules();
+  paintCapsTable();
+  paintAuthMatrix();
 }
 
 // =============================================================
@@ -3127,7 +3197,7 @@ function paintActiveRules() {
   if (!container) return;
   const rules = currentRules.active_rules || [];
   if (!rules.length) {
-    container.innerHTML = `<div class="rule-empty">No active rules yet. Click <b>+ Add rule manually</b> above to add one, or use the <b>✨ Draft with AI wizard</b> button below to have the AI propose one.</div>`;
+    container.innerHTML = `<div class="rule-empty">No active rules yet. Click <b>+ Add rule manually</b> above to add one, or use the <b>✨ Draft with AI wizard</b> button to have the AI propose one.</div>`;
     return;
   }
   container.innerHTML = "";
@@ -3139,6 +3209,8 @@ function paintActiveRules() {
     const date = rule.created_at ? new Date(rule.created_at * 1000).toLocaleDateString() : "";
     const source = (rule.source || "manual").toLowerCase();
     const author = rule.created_by ? " by " + escapeHtml(rule.created_by) : "";
+    const meta = rule.metadata || {};
+    const hasMeta = Object.keys(meta).filter(k => meta[k] !== null && meta[k] !== "" && (Array.isArray(meta[k]) ? meta[k].length : true)).length > 0;
     row.innerHTML = `
       <div class="toggle" title="${enabled ? 'Click to disable' : 'Click to enable'}"></div>
       <div class="body">
@@ -3147,16 +3219,70 @@ function paintActiveRules() {
           <span class="source-tag ${source}">${escapeHtml(source)}</span>
           ${date ? `Added ${date}${author}` : ""}
         </div>
+        <button class="meta-toggle" type="button">Show structured metadata${hasMeta ? "" : " (none extracted yet)"}</button>
+        <div class="meta-block">${renderMetaBlock(meta)}</div>
       </div>
       <div class="actions">
+        <button class="reanalyze" title="Re-analyze with AI">↻ AI</button>
         <button class="edit" title="Edit">✎</button>
         <button class="del" title="Delete">×</button>
       </div>`;
     row.querySelector(".toggle").addEventListener("click", () => toggleActiveRule(idx));
     row.querySelector(".edit").addEventListener("click", () => editActiveRule(idx));
     row.querySelector(".del").addEventListener("click", () => deleteActiveRule(idx));
+    row.querySelector(".reanalyze").addEventListener("click", () => reanalyzeRule(idx));
+    const mt = row.querySelector(".meta-toggle");
+    const mb = row.querySelector(".meta-block");
+    mt.addEventListener("click", () => {
+      const open = mb.classList.toggle("open");
+      mt.classList.toggle("open", open);
+    });
     container.appendChild(row);
   });
+}
+
+function renderMetaBlock(meta) {
+  const fmtMoneyShort = v => "$" + (+v).toLocaleString();
+  const rows = [
+    ["Category",          meta.category || ""],
+    ["Soft threshold",    meta.soft_threshold_usd ? fmtMoneyShort(meta.soft_threshold_usd) : ""],
+    ["Hard threshold",    meta.hard_threshold_usd ? fmtMoneyShort(meta.hard_threshold_usd) : ""],
+    ["Authorizer",        meta.authorizer || ""],
+    ["Hard authorizer",   meta.hard_authorizer || ""],
+    ["Required docs",     (meta.required_docs || []).join(", ")],
+    ["Control function",  meta.control_function || ""],
+    ["Control activity",  meta.control_activity || ""],
+    ["Risk response",     meta.risk_response || ""],
+    ["Likelihood",        meta.likelihood || ""],
+    ["Impact",            meta.impact || ""],
+  ].filter(([_, v]) => v);
+  if (!rows.length) {
+    return `<div class="empty">No metadata extracted yet. Click <b>↻ AI</b> to extract it via the language model, or edit the rule text - regex-based extraction runs on save.</div>`;
+  }
+  return rows.map(([k, v]) => `<div class="row"><span class="k">${escapeHtml(k)}</span><span class="v">${escapeHtml(String(v))}</span></div>`).join("");
+}
+
+async function reanalyzeRule(idx) {
+  const rule = (currentRules.active_rules || [])[idx];
+  if (!rule) return;
+  toast("Analyzing with AI...");
+  try {
+    const r = await authFetch("/api/rules/extract-metadata", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: rule.text }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+    rule.metadata = { ...(rule.metadata || {}), ...(j.metadata || {}) };
+    paintActiveRules();
+    paintCapsTable();
+    paintAuthMatrix();
+    markRulesDirty();
+    toast("Metadata refreshed.");
+  } catch (e) {
+    toast("Re-analyze failed: " + e.message);
+  }
 }
 
 function toggleActiveRule(idx) {
@@ -3260,38 +3386,165 @@ if (_origRwAccept) {
   });
 }
 
+// Per-category dollar caps - DERIVED VIEW from active_rules' metadata.
+// Each row corresponds to one rule (the rule with category + threshold metadata).
+// Editing a row writes back to that rule's metadata AND regenerates its text.
 function paintCapsTable() {
   const tb = $("#r-caps");
+  if (!tb) return;
   tb.innerHTML = "";
-  (currentRules.category_caps || []).forEach((cap, idx) => {
+  const rules = currentRules.active_rules || [];
+  const capRules = rules
+    .map((r, ruleIdx) => ({ r, ruleIdx }))
+    .filter(({ r }) => {
+      const m = r.metadata || {};
+      return m.category && (m.soft_threshold_usd || m.hard_threshold_usd);
+    });
+  if (!capRules.length) {
+    tb.innerHTML = `<tr><td colspan="5" style="padding:14px;text-align:center;color:#9ca3af">No category caps yet. Add a rule like "Travel above $1,500 requires director sign-off" in the Active rules panel above and it will appear here automatically.</td></tr>`;
+    return;
+  }
+  capRules.forEach(({ r, ruleIdx }) => {
+    const m = r.metadata || {};
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><input data-idx="${idx}" data-key="category" value="${escapeHtml(cap.category || "")}" /></td>
-      <td><input data-idx="${idx}" data-key="soft_cap" type="number" value="${cap.soft_cap ?? 0}" /></td>
-      <td><input data-idx="${idx}" data-key="hard_cap" type="number" value="${cap.hard_cap ?? 0}" /></td>
-      <td><button class="del" data-del="${idx}">&times;</button></td>`;
+      <td><input data-rule-idx="${ruleIdx}" data-meta-key="category" value="${escapeHtml(m.category || "")}" /></td>
+      <td><input data-rule-idx="${ruleIdx}" data-meta-key="soft_threshold_usd" type="number" min="0" value="${m.soft_threshold_usd ?? 0}" /></td>
+      <td><input data-rule-idx="${ruleIdx}" data-meta-key="hard_threshold_usd" type="number" min="0" value="${m.hard_threshold_usd ?? 0}" /></td>
+      <td class="source-rule" style="font-size:11px;color:#6b7280;max-width:280px">${escapeHtml(r.text || "")}</td>
+      <td><button class="del" data-del-rule="${ruleIdx}" title="Delete the underlying rule">&times;</button></td>`;
     tb.appendChild(tr);
   });
   tb.querySelectorAll("input").forEach(inp => {
     inp.addEventListener("input", () => {
-      const i = +inp.dataset.idx;
-      const k = inp.dataset.key;
-      const v = k === "category" ? inp.value : (+inp.value || 0);
-      currentRules.category_caps[i][k] = v;
+      const ruleIdx = +inp.dataset.ruleIdx;
+      const key = inp.dataset.metaKey;
+      const rule = currentRules.active_rules[ruleIdx];
+      if (!rule) return;
+      rule.metadata = rule.metadata || {};
+      rule.metadata[key] = key === "category" ? inp.value : (+inp.value || 0);
+      // Regenerate the text from the new metadata so they stay in sync
+      rule.text = jsRegenerateRuleText(rule.metadata, rule.text);
+      // Update the source-rule cell live without full repaint (preserves caret in input)
+      const tr = inp.closest("tr");
+      const srcCell = tr && tr.querySelector(".source-rule");
+      if (srcCell) srcCell.textContent = rule.text;
+      markRulesDirty();
+      // Defer the full repaint of derived panels to avoid disrupting user input
+    });
+    inp.addEventListener("change", () => {
+      paintActiveRules();
+      paintAuthMatrix();
     });
   });
-  tb.querySelectorAll("button[data-del]").forEach(b => {
+  tb.querySelectorAll("button[data-del-rule]").forEach(b => {
     b.addEventListener("click", () => {
-      currentRules.category_caps.splice(+b.dataset.del, 1);
+      const idx = +b.dataset.delRule;
+      const rule = currentRules.active_rules[idx];
+      if (!rule) return;
+      if (!confirm(`Delete the underlying rule?\n\n"${rule.text}"\n\nThis removes both the cap row and the rule itself.`)) return;
+      currentRules.active_rules.splice(idx, 1);
+      paintActiveRules();
       paintCapsTable();
+      paintAuthMatrix();
+      markRulesDirty();
     });
   });
 }
 
+// Mirror of the server's regenerate_rule_text() so caps edits stay live in the UI
+function jsRegenerateRuleText(meta, fallback) {
+  const fmt = v => Number(v).toLocaleString();
+  const cat = meta.category;
+  const soft = meta.soft_threshold_usd;
+  const hard = meta.hard_threshold_usd;
+  const softAuth = meta.authorizer || "manager";
+  const hardAuth = meta.hard_authorizer || "CFO";
+  if (cat && soft && hard) return `${cat} expenses above $${fmt(soft)} require ${softAuth} sign-off; above $${fmt(hard)} require ${hardAuth} sign-off.`;
+  if (cat && soft)         return `${cat} expenses above $${fmt(soft)} require ${softAuth} sign-off.`;
+  if (cat && hard)         return `${cat} expenses above $${fmt(hard)} require ${hardAuth} sign-off.`;
+  if (cat && (meta.required_docs || []).length) return `${cat} expenses must reference: ${(meta.required_docs || []).join(", ")}.`;
+  return fallback || "";
+}
+
+// Authorization Matrix - DERIVED from rules' metadata. Read-only for now.
+function paintAuthMatrix() {
+  const tb = document.getElementById("r-auth-matrix");
+  if (!tb) return;
+  tb.innerHTML = "";
+  const rules = currentRules.active_rules || [];
+  const rows = [];
+  rules.forEach(r => {
+    const m = r.metadata || {};
+    if (!m.authorizer && !m.hard_authorizer) return;
+    if (m.authorizer && m.soft_threshold_usd) {
+      rows.push({ role: m.authorizer, category: m.category || "(any)",
+                  threshold: m.soft_threshold_usd, kind: "soft", text: r.text });
+    }
+    if (m.hard_authorizer && m.hard_threshold_usd) {
+      rows.push({ role: m.hard_authorizer, category: m.category || "(any)",
+                  threshold: m.hard_threshold_usd, kind: "hard", text: r.text });
+    }
+  });
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="5" style="padding:14px;text-align:center;color:#9ca3af">No authorization rules yet. Add a rule mentioning a role and a threshold (e.g. "Travel above $1,500 requires Director sign-off") to populate this matrix.</td></tr>`;
+    return;
+  }
+  // Group by role for cleaner display
+  rows.sort((a, b) => {
+    if (a.role !== b.role) return a.role.localeCompare(b.role);
+    if (a.category !== b.category) return a.category.localeCompare(b.category);
+    return b.threshold - a.threshold;
+  });
+  // Pivot: per (role, category), show min and max thresholds in one row
+  const pivot = {};
+  rows.forEach(x => {
+    const key = x.role + "||" + x.category;
+    pivot[key] = pivot[key] || { role: x.role, category: x.category, soft: null, hard: null, text: x.text };
+    if (x.kind === "soft") pivot[key].soft = x.threshold;
+    if (x.kind === "hard") pivot[key].hard = x.threshold;
+  });
+  Object.values(pivot).forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="role-badge">${escapeHtml(p.role)}</span></td>
+      <td>${escapeHtml(p.category)}</td>
+      <td class="threshold" style="text-align:right">${p.soft ? "$" + p.soft.toLocaleString() : "—"}</td>
+      <td class="threshold" style="text-align:right">${p.hard ? "$" + p.hard.toLocaleString() : "—"}</td>
+      <td class="source-rule">${escapeHtml(p.text || "")}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
 $("#r-add-cap").addEventListener("click", () => {
-  currentRules.category_caps = currentRules.category_caps || [];
-  currentRules.category_caps.push({ category: "", soft_cap: 0, hard_cap: 0 });
+  // Adding a cap means adding a new Active rule with the cap metadata.
+  const cat = (prompt('New category name (e.g. "Travel", "Marketing"):') || "").trim();
+  if (!cat) return;
+  const meta = {
+    category: cat,
+    soft_threshold_usd: 1000,
+    hard_threshold_usd: 5000,
+    authorizer: "Manager",
+    hard_authorizer: "CFO",
+    control_function: "preventive",
+    control_activity: "authorization",
+    risk_response: "reduce",
+  };
+  currentRules.active_rules = currentRules.active_rules || [];
+  currentRules.active_rules.push({
+    id: "r_" + Math.random().toString(36).slice(2, 10),
+    text: jsRegenerateRuleText(meta, ""),
+    source: "manual",
+    created_at: Math.floor(Date.now() / 1000),
+    created_by: (currentUser && currentUser.username) || "?",
+    enabled: true,
+    metadata: meta,
+  });
+  paintActiveRules();
   paintCapsTable();
+  paintAuthMatrix();
+  markRulesDirty();
+  toast("Cap added as a new Active rule. Edit the values, then Save.");
 });
 
 $("#r-revert").addEventListener("click", async () => {

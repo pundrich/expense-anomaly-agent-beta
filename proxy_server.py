@@ -352,11 +352,24 @@ def reset_failures(ip: str) -> None:
 DEFAULT_RULES = {
     "z_threshold": 2.0,
     "policy_text": "",
+    # Free-form seed rules - regex extraction fills metadata best-effort
     "active_rules_seed": [
         "Pre-approval is required for any single expense above $2,500.",
         "Conference and training expenses must reference an approved training plan or PO.",
         "Marketing spend must align with the documented quarterly campaign plan.",
         "Vendor must be consistent with the GL category - an Office Supplies vendor cannot be justified as a Marketing campaign.",
+    ],
+    # Category-cap seed: one Active Rule per default cap, with full metadata.
+    # Per-category Dollar Caps panel will be a derived view of these rules.
+    "category_cap_seed": [
+        {"category": "Travel",                "soft": 1500, "hard": 5000,  "soft_auth": "Director", "hard_auth": "CFO"},
+        {"category": "Office Supplies",       "soft": 250,  "hard": 750,   "soft_auth": "Manager",  "hard_auth": "Director"},
+        {"category": "Software/SaaS",         "soft": 1200, "hard": 5000,  "soft_auth": "Manager",  "hard_auth": "CFO"},
+        {"category": "Marketing",             "soft": 3000, "hard": 10000, "soft_auth": "Director", "hard_auth": "CFO"},
+        {"category": "Consulting",            "soft": 8000, "hard": 25000, "soft_auth": "Director", "hard_auth": "CFO"},
+        {"category": "Equipment",             "soft": 3500, "hard": 12000, "soft_auth": "Director", "hard_auth": "CFO"},
+        {"category": "Meals & Entertainment", "soft": 200,  "hard": 500,   "soft_auth": "Manager",  "hard_auth": "Director"},
+        {"category": "Utilities",             "soft": 600,  "hard": 1500,  "soft_auth": "Manager",  "hard_auth": "Director"},
     ],
     "auto_red_keywords": [
         "personal", "forgot", "unaware", "mistake", "no reason",
@@ -385,25 +398,55 @@ DEFAULT_RULES = {
 def load_rules() -> dict:
     data = db_load_rules()
     if data is None:
-        # seed defaults on first run, including a starter set of Active rules
+        # seed defaults on first run
         seed = dict(DEFAULT_RULES)
-        seed["active_rules"] = [
-            {
+        seed["active_rules"] = []
+        # 1. Free-form starter rules (run regex extraction for metadata)
+        for text in DEFAULT_RULES.get("active_rules_seed", []):
+            seed["active_rules"].append({
                 "id": "r_seed_" + secrets.token_hex(3),
                 "text": text,
                 "source": "manual",
                 "created_at": int(time.time()),
                 "created_by": "(default)",
                 "enabled": True,
+                "metadata": extract_metadata_regex(text),
+            })
+        # 2. Category-cap seed rules - one per default cap, with full metadata
+        for c in DEFAULT_RULES.get("category_cap_seed", []):
+            meta = {
+                "category": c["category"],
+                "soft_threshold_usd": c["soft"],
+                "hard_threshold_usd": c["hard"],
+                "authorizer": c["soft_auth"],
+                "hard_authorizer": c["hard_auth"],
+                "control_function": "preventive",
+                "control_activity": "authorization",
+                "risk_response": "reduce",
             }
-            for text in DEFAULT_RULES.get("active_rules_seed", [])
-        ]
-        seed["policy_text_migrated_at"] = int(time.time())  # mark migration done so we don't re-run
+            seed["active_rules"].append({
+                "id": "r_cap_" + secrets.token_hex(3),
+                "text": regenerate_rule_text(meta),
+                "source": "manual",
+                "created_at": int(time.time()),
+                "created_by": "(default)",
+                "enabled": True,
+                "metadata": meta,
+            })
+        seed["policy_text_migrated_at"] = int(time.time())
         db_save_rules(seed)
         return seed
     # backfill any missing keys so the schema can evolve
     for k, v in DEFAULT_RULES.items():
         data.setdefault(k, v)
+    # Backfill metadata via regex for any existing rule that has none
+    rules_changed = False
+    for r in data.get("active_rules", []):
+        if not isinstance(r.get("metadata"), dict) or not r.get("metadata"):
+            r["metadata"] = extract_metadata_regex(r.get("text", ""))
+            rules_changed = True
+    if rules_changed:
+        db_save_rules(data)
     # ---- one-time migration: collapse the legacy free-form "policy_text"
     # into the active_rules list so there's a single source of truth ----
     legacy = (data.get("policy_text") or "").strip()
@@ -445,7 +488,7 @@ def save_rules(rules: dict) -> dict:
         cleaned["category_caps"] = []
     if not isinstance(cleaned.get("active_rules"), list):
         cleaned["active_rules"] = []
-    # Sanitize active_rules - keep only valid items
+    # Sanitize active_rules - keep only valid items, run regex extraction for missing metadata
     sanitized_rules = []
     for r in cleaned["active_rules"]:
         if not isinstance(r, dict):
@@ -453,6 +496,10 @@ def save_rules(rules: dict) -> dict:
         text = str(r.get("text", "")).strip()
         if not text:
             continue
+        existing_meta = r.get("metadata") if isinstance(r.get("metadata"), dict) else {}
+        # Always re-run regex extraction; merge so user-edited keys are preserved.
+        regex_meta = extract_metadata_regex(text)
+        merged = merge_metadata(existing_meta, regex_meta, overwrite=False)
         sanitized_rules.append({
             "id": str(r.get("id") or ("r_" + secrets.token_hex(6)))[:32],
             "text": text[:1000],
@@ -460,6 +507,7 @@ def save_rules(rules: dict) -> dict:
             "created_at": int(r.get("created_at") or time.time()),
             "created_by": str(r.get("created_by") or "")[:60],
             "enabled": bool(r.get("enabled", True)),
+            "metadata": merged,
         })
     cleaned["active_rules"] = sanitized_rules
     cleaned["policy_text"] = str(cleaned.get("policy_text", ""))[:8000]
@@ -844,6 +892,199 @@ PUBLIC_PATHS = {
 # =============================================================
 # Wizard prompt builders
 # =============================================================
+# =============================================================
+# Rule metadata: regex extractor + LLM extractor + text regenerator
+# =============================================================
+import re as _re
+
+KNOWN_CATEGORIES = [
+    "Travel", "Office Supplies", "Software/SaaS", "Marketing",
+    "Consulting", "Equipment", "Meals & Entertainment", "Utilities",
+]
+KNOWN_AUTHORIZERS = ["CFO", "CTO", "CEO", "VP", "Director", "Manager", "Supervisor", "Controller", "COO"]
+CONTROL_ACTIVITY_TYPES = [
+    "authorization",           # Proper authorization of transactions and activities
+    "segregation_of_duties",
+    "documents_records",       # Design and use of documents and records
+    "safeguarding_assets",
+    "independent_checks",
+    "change_management",
+    "project_development",     # Project development and acquisition controls
+]
+
+
+def extract_metadata_regex(text: str) -> dict:
+    """Cheap, deterministic metadata extraction. Used as the first pass on
+    every rule edit, and as a migration for legacy rules with no metadata."""
+    if not text:
+        return {}
+    t = text
+    tl = t.lower()
+    meta: dict = {}
+
+    # Category - longest match wins so "Office Supplies" beats "Supplies"
+    cat_hits = [c for c in KNOWN_CATEGORIES if c.lower() in tl]
+    if cat_hits:
+        meta["category"] = max(cat_hits, key=len)
+
+    # Dollar amounts - find all, sort ascending, take first as soft, last as hard
+    amounts = []
+    for m in _re.finditer(r"\$\s*([\d]{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?", t):
+        try:
+            amounts.append(int(m.group(1).replace(",", "")))
+        except Exception:
+            pass
+    amounts = sorted(set(amounts))
+    if amounts:
+        meta["soft_threshold_usd"] = amounts[0]
+        if len(amounts) > 1:
+            meta["hard_threshold_usd"] = amounts[-1]
+
+    # Authorizers - case insensitive, full word
+    auth_hits = []
+    for role in KNOWN_AUTHORIZERS:
+        if _re.search(r"\b" + _re.escape(role) + r"\b", t, _re.IGNORECASE):
+            auth_hits.append(role)
+    if auth_hits:
+        # heuristic: lower-ranked authority first if both appear, higher last
+        rank = {"Manager": 1, "Supervisor": 1, "Controller": 2, "Director": 3,
+                "VP": 4, "COO": 5, "CTO": 5, "CFO": 6, "CEO": 7}
+        sorted_auths = sorted(set(auth_hits), key=lambda r: rank.get(r, 4))
+        meta["authorizer"] = sorted_auths[0]
+        if len(sorted_auths) > 1:
+            meta["hard_authorizer"] = sorted_auths[-1]
+
+    # Documentation requirements
+    docs = []
+    if "receipt" in tl: docs.append("receipt")
+    if "purchase order" in tl or _re.search(r"\bpo\b|\bpo#|po\s*#", tl): docs.append("PO")
+    if "training plan" in tl: docs.append("training plan")
+    if "contract" in tl: docs.append("contract")
+    if "invoice" in tl: docs.append("invoice")
+    if "concur" in tl: docs.append("Concur entry")
+    if "campaign plan" in tl: docs.append("campaign plan reference")
+    if docs:
+        meta["required_docs"] = sorted(set(docs))
+
+    # Control function (preventive/detective/corrective)
+    preventive_signals = ["pre-approval", "requires approval", "must approve",
+                         "must reference", "require", "above", "limit", "cap",
+                         "sign-off", "authorize", "cannot be", "must not"]
+    detective_signals = ["reconcile", "review", "audit", "monthly", "quarterly",
+                        "verify", "compare", "report", "monitor"]
+    corrective_signals = ["restore", "recover", "backup", "remediate", "correct"]
+    if any(s in tl for s in preventive_signals):
+        meta["control_function"] = "preventive"
+    elif any(s in tl for s in detective_signals):
+        meta["control_function"] = "detective"
+    elif any(s in tl for s in corrective_signals):
+        meta["control_function"] = "corrective"
+
+    # Control activity (the 7 from slide 10-32)
+    if any(s in tl for s in ["approve", "sign-off", "pre-approval", "authoriz", "above $", "requires", "limit", "cap"]):
+        meta["control_activity"] = "authorization"
+    elif any(s in tl for s in ["reconcile", "review", "verify", "compare", "independent"]):
+        meta["control_activity"] = "independent_checks"
+    elif any(s in tl for s in ["receipt", "purchase order", "training plan", "contract", "invoice", "document"]):
+        meta["control_activity"] = "documents_records"
+    elif any(s in tl for s in ["segregation", "different person", "separate role"]):
+        meta["control_activity"] = "segregation_of_duties"
+    elif any(s in tl for s in ["safeguard", "lock", "physical", "restricted access"]):
+        meta["control_activity"] = "safeguarding_assets"
+    elif any(s in tl for s in ["change ", "version", "modify"]):
+        meta["control_activity"] = "change_management"
+
+    # Risk response (very rough - mostly "reduce" for this kind of rule)
+    if any(s in tl for s in ["prohibited", "not allowed", "ban", "never"]):
+        meta["risk_response"] = "avoid"
+    elif any(s in tl for s in ["insurance", "outsource", "hedge"]):
+        meta["risk_response"] = "share"
+    elif any(s in tl for s in ["acceptable", "noted"]):
+        meta["risk_response"] = "accept"
+    else:
+        meta["risk_response"] = "reduce"
+
+    return meta
+
+
+def regenerate_rule_text(meta: dict, fallback_text: str = "") -> str:
+    """Produce canonical rule text from structured metadata. Used when a
+    derived panel edits the cap or authorizer - we rewrite the underlying
+    rule's text to stay consistent."""
+    cat = meta.get("category")
+    soft = meta.get("soft_threshold_usd")
+    hard = meta.get("hard_threshold_usd")
+    soft_auth = meta.get("authorizer") or "manager"
+    hard_auth = meta.get("hard_authorizer") or "CFO"
+
+    if cat and soft and hard:
+        return f"{cat} expenses above ${soft:,} require {soft_auth} sign-off; above ${hard:,} require {hard_auth} sign-off."
+    if cat and soft:
+        return f"{cat} expenses above ${soft:,} require {soft_auth} sign-off."
+    if cat and hard:
+        return f"{cat} expenses above ${hard:,} require {hard_auth} sign-off."
+    if cat and meta.get("required_docs"):
+        docs = ", ".join(meta["required_docs"])
+        return f"{cat} expenses must reference: {docs}."
+    # fallback - keep original text if we don't have enough structure
+    return fallback_text or ""
+
+
+def merge_metadata(existing: dict, fresh: dict, overwrite: bool = False) -> dict:
+    """Merge two metadata dicts. If overwrite is False, existing values win
+    (so manual edits aren't clobbered by re-extraction)."""
+    out = dict(existing or {})
+    for k, v in (fresh or {}).items():
+        if v is None or v == "" or v == []:
+            continue
+        if overwrite or k not in out or out[k] is None or out[k] == "":
+            out[k] = v
+    return out
+
+
+async def extract_metadata_llm_async(text: str) -> dict:
+    """LLM-driven extraction for stubborn rules. Strict JSON output."""
+    prompt = f"""You are analyzing one internal-controls rule and extracting structured metadata.
+
+Rule text:
+\"\"\"{text}\"\"\"
+
+Known expense categories: {", ".join(KNOWN_CATEGORIES)}
+Known authorizer roles: {", ".join(KNOWN_AUTHORIZERS)}
+
+Reply with ONLY a JSON object. Omit any field you cannot infer. Allowed fields:
+{{
+  "category": one of the known categories or null,
+  "soft_threshold_usd": integer or null,
+  "hard_threshold_usd": integer or null,
+  "authorizer": one of the known authorizers or null,
+  "hard_authorizer": one of the known authorizers or null,
+  "required_docs": list of short strings (e.g. ["PO", "receipt"]) or null,
+  "control_function": "preventive" | "detective" | "corrective",
+  "control_activity": "authorization" | "segregation_of_duties" | "documents_records" | "safeguarding_assets" | "independent_checks" | "change_management" | "project_development",
+  "risk_response": "reduce" | "share" | "avoid" | "accept",
+  "likelihood": "low" | "medium" | "high",
+  "impact": "low" | "medium" | "high"
+}}
+"""
+    client = get_client()
+    resp = client.chat.completions.create(
+        model=LLM_MODEL,
+        max_tokens=300,
+        messages=[{"role": "user", "content": prompt}],
+        reasoning_effort="low",
+    )
+    text_out = (resp.choices[0].message.content or "").strip()
+    # parse first JSON block
+    m = _re.search(r"\{[\s\S]*\}", text_out)
+    if not m:
+        return {}
+    try:
+        return json.loads(m.group(0))
+    except Exception:
+        return {}
+
+
 def _wizard_system_prompt(txn: dict, rules: dict, max_turns: int, turns_used: int, force_conclude: bool) -> str:
     caps_lines = "\n".join(
         f"  - {c.get('category')}: soft cap ${c.get('soft_cap')}, hard cap ${c.get('hard_cap')}"
@@ -1182,6 +1423,27 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif path == "/api/wizard-rule":
             if self._require_admin():
                 self._wizard_rule()
+        elif path == "/api/rules/extract-metadata":
+            # Run LLM-driven metadata extraction for one rule's text.
+            # Used by the "Re-analyze with AI" button per rule card.
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                data = json.loads(self.rfile.read(length))
+                text = (data.get("text") or "").strip()
+                if not text:
+                    return self._json(400, {"error": "missing text"})
+                # Run cheap regex first
+                regex_meta = extract_metadata_regex(text)
+                # Then ask the LLM to fill the gaps / refine
+                import asyncio
+                try:
+                    llm_meta = asyncio.run(extract_metadata_llm_async(text))
+                except Exception as e:
+                    llm_meta = {}
+                merged = merge_metadata(regex_meta, llm_meta, overwrite=False)
+                self._json(200, {"metadata": merged, "regex": regex_meta, "llm": llm_meta})
+            except Exception as e:
+                self._json(500, {"error": str(e)})
         elif path == "/api/seed-mock-data":
             if self._require_researcher():
                 try:
