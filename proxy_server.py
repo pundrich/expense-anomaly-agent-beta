@@ -378,6 +378,7 @@ DEFAULT_RULES = {
         {"category": "Meals & Entertainment", "soft_cap": 200,  "hard_cap": 500},
         {"category": "Utilities",             "soft_cap": 600,  "hard_cap": 1500},
     ],
+    "active_rules": [],   # list of {id, text, source, created_at, created_by, enabled}
     "wizard_max_turns": 6,
 }
 
@@ -413,6 +414,25 @@ def save_rules(rules: dict) -> dict:
     cleaned["auto_green_keywords"] = [str(k).strip().lower() for k in cleaned["auto_green_keywords"] if str(k).strip()]
     if not isinstance(cleaned.get("category_caps"), list):
         cleaned["category_caps"] = []
+    if not isinstance(cleaned.get("active_rules"), list):
+        cleaned["active_rules"] = []
+    # Sanitize active_rules - keep only valid items
+    sanitized_rules = []
+    for r in cleaned["active_rules"]:
+        if not isinstance(r, dict):
+            continue
+        text = str(r.get("text", "")).strip()
+        if not text:
+            continue
+        sanitized_rules.append({
+            "id": str(r.get("id") or ("r_" + secrets.token_hex(6)))[:32],
+            "text": text[:1000],
+            "source": str(r.get("source") or "manual")[:24],
+            "created_at": int(r.get("created_at") or time.time()),
+            "created_by": str(r.get("created_by") or "")[:60],
+            "enabled": bool(r.get("enabled", True)),
+        })
+    cleaned["active_rules"] = sanitized_rules
     cleaned["policy_text"] = str(cleaned.get("policy_text", ""))[:8000]
     db_save_rules(cleaned)
     return cleaned
@@ -803,6 +823,9 @@ def _wizard_system_prompt(txn: dict, rules: dict, max_turns: int, turns_used: in
     auto_red = ", ".join(rules.get("auto_red_keywords") or []) or "(none)"
     auto_green = ", ".join(rules.get("auto_green_keywords") or []) or "(none)"
     policy = (rules.get("policy_text") or "").strip() or "(no additional policy)"
+    enabled_rules = [r for r in (rules.get("active_rules") or []) if r.get("enabled", True)]
+    rule_lines = "\n".join(f"  - {r.get('text','')}" for r in enabled_rules) or "  (no individual rules configured)"
+    policy = f"{policy}\n\nIndividual active rules:\n{rule_lines}"
 
     base = f"""You are an internal-controls reviewer interviewing an employee whose expense was \
 flagged. Your job is to ask the SHORTEST sequence of questions that will let you \
@@ -872,6 +895,8 @@ Conversation so far:
 
 Current rules in effect:
 - Policy text: {current_rules.get('policy_text','')[:500]}
+- Active individual rules:
+{chr(10).join('  - ' + (r.get('text','') or '') for r in (current_rules.get('active_rules') or []) if r.get('enabled', True)) or '  (none)'}
 - Auto-RED phrases: {', '.join(current_rules.get('auto_red_keywords', [])) or '(none)'}
 - Auto-GREEN phrases: {', '.join(current_rules.get('auto_green_keywords', [])) or '(none)'}
 
@@ -1155,8 +1180,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     length = int(self.headers.get("Content-Length", "0"))
                     add = json.loads(self.rfile.read(length))
                     cur = load_rules()
+                    actor = (session_info(self._bearer_token()) or {}).get("username")
+                    # Wizard's policy_text_addition becomes a NEW active rule (not appended to policy_text blob)
                     if add.get("policy_text_addition"):
-                        cur["policy_text"] = (cur.get("policy_text", "") + "\n\n" + add["policy_text_addition"]).strip()
+                        new_rule = {
+                            "id": "r_" + secrets.token_hex(6),
+                            "text": str(add["policy_text_addition"]).strip(),
+                            "source": "wizard",
+                            "created_at": int(time.time()),
+                            "created_by": actor or "?",
+                            "enabled": True,
+                        }
+                        cur["active_rules"] = (cur.get("active_rules") or []) + [new_rule]
                     if isinstance(add.get("new_auto_red_keywords"), list):
                         cur["auto_red_keywords"] = list({*(cur.get("auto_red_keywords") or []), *[str(k).lower() for k in add["new_auto_red_keywords"]]})
                     if isinstance(add.get("new_auto_green_keywords"), list):
@@ -1164,7 +1199,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     if isinstance(add.get("new_category_caps"), list):
                         cur["category_caps"] = (cur.get("category_caps") or []) + add["new_category_caps"]
                     saved = save_rules(cur)
-                    actor = (session_info(self._bearer_token()) or {}).get("username")
                     log_event("rule_change", actor, "wizard_apply",
                               {"additions": add, "rationale": add.get("rationale", "")})
                     self._json(200, saved)
