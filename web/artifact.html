@@ -929,37 +929,16 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
 
     <div id="audit-tab-rules" style="display:none">
       <div class="rules-grid">
-        <div class="rules-panel">
-          <h3>Detection sensitivity</h3>
-          <p class="desc">Higher values flag fewer (only the most extreme) transactions. The exact algorithm in use is set by the researcher.</p>
-          <div class="row">
-            <div>
-              <label>Algorithm sensitivity</label>
-              <input id="r-z" type="number" step="0.1" min="1.0" max="5.0" />
-            </div>
-            <div>
-              <label>Wizard max questions</label>
-              <input id="r-max-turns" type="number" step="1" min="2" max="10" />
-            </div>
-          </div>
-        </div>
-
-        <div class="rules-panel">
-          <h3>Auto-classification keywords</h3>
-          <p class="desc">Phrases that strongly suggest a flag color when present in the requester's explanation. Used as a check on the LLM's answer and as the offline fallback.</p>
-          <label>Auto-RED phrases (one per line)</label>
-          <textarea id="r-red"></textarea>
-          <label style="margin-top:10px">Auto-GREEN phrases (one per line)</label>
-          <textarea id="r-green"></textarea>
-        </div>
-
         <div class="rules-panel full">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:6px;flex-wrap:wrap">
             <div style="flex:1;min-width:220px">
               <h3 style="margin-bottom:2px">Active rules</h3>
               <p class="desc" style="margin-bottom:0">Each rule is sent to the AI on every classification. Toggle the switch to disable a rule without deleting it (useful for A/B testing). The "Source" tag shows where the rule came from.</p>
             </div>
-            <div style="display:flex;gap:8px;flex-shrink:0">
+            <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
+              <button class="btn small ghost" id="rules-load-pack" type="button" style="white-space:nowrap" title="Add a curated set of example rules covering authorization, documents, segregation of duties, and detective controls">
+                + Load example pack
+              </button>
               <button class="btn small ghost" id="rules-add-btn" type="button" style="white-space:nowrap">
                 + Add rule manually
               </button>
@@ -1010,6 +989,21 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
             <tbody id="r-auth-matrix"></tbody>
           </table>
           <p class="derived-note">This view is read-only - to change who authorizes what, edit the underlying rule above (or the Per-category caps row).</p>
+        </div>
+
+        <div class="rules-panel full">
+          <h3>Detection sensitivity</h3>
+          <p class="desc">How aggressively the system flags transactions in the first place. Higher values flag fewer (only the most extreme) transactions; the exact algorithm is set by the researcher.</p>
+          <div class="row">
+            <div>
+              <label>Algorithm sensitivity</label>
+              <input id="r-z" type="number" step="0.1" min="1.0" max="5.0" />
+            </div>
+            <div>
+              <label>Wizard max questions</label>
+              <input id="r-max-turns" type="number" step="1" min="2" max="10" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1498,8 +1492,6 @@ function buildPrompt(row, explanation) {
   const cap = m ? { soft_cap: m.soft_threshold_usd, hard_cap: m.hard_threshold_usd }
                 : (rules.category_caps || []).find(c => c.category === row.category);
   const capLine = cap ? `Category cap for ${row.category}: soft $${cap.soft_cap || "—"}, hard $${cap.hard_cap || "—"}.` : "";
-  const redKw = (rules.auto_red_keywords || []).join(", ");
-  const greenKw = (rules.auto_green_keywords || []).join(", ");
   const enabledRules = (rules.active_rules || []).filter(r => r.enabled !== false);
   const ruleLines = enabledRules.length
     ? enabledRules.map(r => "  - " + r.text).join("\n")
@@ -1514,9 +1506,6 @@ function buildPrompt(row, explanation) {
 Active company rules:
 ${ruleLines}
 ${capLine}
-
-Phrases that should lean RED if they appear: ${redKw || "(none)"}
-Phrases that should lean GREEN if backed by detail: ${greenKw || "(none)"}
 
 Transaction:
   Transaction ID:  ${row.transaction_id}
@@ -3104,8 +3093,6 @@ ${exec}
         </tr>`).join("")
       }</table>`
     : '<p class="muted">No active rules configured.</p>'}
-  <p style="margin-top:12px"><b>Auto-RED phrases:</b> <span class="muted">${escSvg((rules.auto_red_keywords || []).join(", ") || "(none)")}</span></p>
-  <p><b>Auto-GREEN phrases:</b> <span class="muted">${escSvg((rules.auto_green_keywords || []).join(", ") || "(none)")}</span></p>
 </div>
 
 <div class="footer">
@@ -3182,8 +3169,6 @@ async function loadRules() {
 function paintRulesEditor() {
   $("#r-z").value = currentRules.z_threshold;
   $("#r-max-turns").value = currentRules.wizard_max_turns;
-  $("#r-red").value = (currentRules.auto_red_keywords || []).join("\n");
-  $("#r-green").value = (currentRules.auto_green_keywords || []).join("\n");
   paintActiveRules();
   paintCapsTable();
   paintAuthMatrix();
@@ -3375,6 +3360,83 @@ function commitNewRule() {
   toast("Rule added — remember to click Save to persist.");
 }
 
+// "Load example pack" button - adds a curated set of rules covering all 7
+// Physical Control Activities (slide 10-32), so the auditor sees a meaningful
+// starting state instead of an empty panel.
+const EXAMPLE_RULE_PACK = [
+  // Authorization
+  { text: "Travel above $1,500 requires Director sign-off; above $5,000 requires CFO sign-off.",
+    metadata: { category: "Travel", soft_threshold_usd: 1500, hard_threshold_usd: 5000, authorizer: "Director", hard_authorizer: "CFO", control_function: "preventive", control_activity: "authorization", risk_response: "reduce" } },
+  { text: "Marketing above $3,000 requires Director sign-off; above $10,000 requires CFO sign-off.",
+    metadata: { category: "Marketing", soft_threshold_usd: 3000, hard_threshold_usd: 10000, authorizer: "Director", hard_authorizer: "CFO", control_function: "preventive", control_activity: "authorization", risk_response: "reduce" } },
+  { text: "Consulting engagements above $8,000 require Director approval; above $25,000 require CFO and Board ratification.",
+    metadata: { category: "Consulting", soft_threshold_usd: 8000, hard_threshold_usd: 25000, authorizer: "Director", hard_authorizer: "CFO", control_function: "preventive", control_activity: "authorization", risk_response: "reduce" } },
+  // Documents & records
+  { text: "Conference and training expenses must reference an approved training plan or PO number; otherwise YELLOW.",
+    metadata: { category: "Travel", required_docs: ["training plan", "PO"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce" } },
+  { text: "Equipment purchases above $1,000 require an attached invoice in Concur and a fixed-asset tag within 30 days.",
+    metadata: { category: "Equipment", soft_threshold_usd: 1000, required_docs: ["invoice", "Concur entry"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce" } },
+  { text: "Consulting engagements must attach the signed contract or statement of work before invoicing.",
+    metadata: { category: "Consulting", required_docs: ["contract"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce" } },
+  // Segregation of duties
+  { text: "The same person cannot both submit and approve an expense above $1,000.",
+    metadata: { soft_threshold_usd: 1000, control_function: "preventive", control_activity: "segregation_of_duties", risk_response: "reduce" } },
+  { text: "Marketing managers cannot approve their own department's media buys; approval routes to Finance.",
+    metadata: { category: "Marketing", control_function: "preventive", control_activity: "segregation_of_duties", risk_response: "reduce" } },
+  // Safeguarding assets
+  { text: "All Equipment must be tagged with a fixed-asset ID within 30 days of acquisition; missing tags trigger RED.",
+    metadata: { category: "Equipment", control_function: "preventive", control_activity: "safeguarding_assets", risk_response: "reduce" } },
+  // Independent checks (detective)
+  { text: "Monthly reconciliation of Travel category spend against approved trip plans by the audit committee.",
+    metadata: { category: "Travel", control_function: "detective", control_activity: "independent_checks", risk_response: "reduce" } },
+  { text: "Quarterly review of all RED-flagged transactions and audit overrides by the audit committee.",
+    metadata: { control_function: "detective", control_activity: "independent_checks", risk_response: "reduce" } },
+  // Vendor / category integrity
+  { text: "Office Supplies vendors (Staples, Amazon Business, Quill) cannot be charged as Marketing campaigns - flag RED.",
+    metadata: { category: "Office Supplies", control_function: "preventive", control_activity: "documents_records", risk_response: "reduce" } },
+  { text: "Utilities expenses must come from a recurring vendor on the approved utilities list (Comcast, PG&E, AT&T, Verizon).",
+    metadata: { category: "Utilities", control_function: "preventive", control_activity: "documents_records", risk_response: "reduce" } },
+  // Anti-circumvention / red-flag triggers (these previously lived in keyword lists)
+  { text: "Any explanation citing 'personal', 'forgot', 'unaware', or 'mistake' should be RED automatically.",
+    metadata: { control_function: "preventive", control_activity: "authorization", risk_response: "reduce" } },
+  { text: "Just-below-threshold expenses (e.g. $4,999 when the approval threshold is $5,000) should be flagged YELLOW.",
+    metadata: { soft_threshold_usd: 5000, control_function: "detective", control_activity: "independent_checks", risk_response: "reduce" } },
+  { text: "Round-number expenses ($1,000 / $5,000 / $10,000 exactly) on Marketing or Consulting categories require additional documentation.",
+    metadata: { control_function: "detective", control_activity: "independent_checks", risk_response: "reduce" } },
+];
+
+const _rulesLoadPackBtn = document.getElementById("rules-load-pack");
+if (_rulesLoadPackBtn) {
+  _rulesLoadPackBtn.addEventListener("click", () => {
+    const existing = (currentRules.active_rules || []).map(r => (r.text || "").toLowerCase().trim());
+    const toAdd = EXAMPLE_RULE_PACK.filter(p => !existing.includes(p.text.toLowerCase().trim()));
+    if (!toAdd.length) {
+      toast("All example rules are already present.");
+      return;
+    }
+    const msg = `Add ${toAdd.length} example rule${toAdd.length === 1 ? "" : "s"} covering authorization, documentation, segregation of duties, safeguarding, and independent checks?\n\n(Duplicates are skipped automatically.)`;
+    if (!confirm(msg)) return;
+    currentRules.active_rules = currentRules.active_rules || [];
+    const now = Math.floor(Date.now() / 1000);
+    toAdd.forEach(p => {
+      currentRules.active_rules.push({
+        id: "r_pack_" + Math.random().toString(36).slice(2, 8),
+        text: p.text,
+        source: "manual",
+        created_at: now,
+        created_by: "(example pack)",
+        enabled: true,
+        metadata: p.metadata,
+      });
+    });
+    paintActiveRules();
+    paintCapsTable();
+    paintAuthMatrix();
+    markRulesDirty();
+    toast(`Added ${toAdd.length} example rule${toAdd.length === 1 ? "" : "s"}. Click Save to persist.`);
+  });
+}
+
 // Refresh active rules after wizard accept (so the new rule appears immediately)
 const _origRwAccept = document.getElementById("rw-accept");
 if (_origRwAccept) {
@@ -3562,8 +3624,8 @@ $("#r-save").addEventListener("click", async () => {
     z_threshold: Number.isFinite(z) ? z : currentRules.z_threshold,
     wizard_max_turns: Number.isFinite(turns) ? turns : currentRules.wizard_max_turns,
     policy_text: "",  // legacy field, kept empty - all rules now live in active_rules
-    auto_red_keywords: splitLines($("#r-red").value),
-    auto_green_keywords: splitLines($("#r-green").value),
+    auto_red_keywords: [],   // legacy bag-of-words approach removed - rules cover this now
+    auto_green_keywords: [],
     category_caps: (currentRules.category_caps || []).filter(c => c.category && (c.soft_cap || c.hard_cap)),
     active_rules: (currentRules.active_rules || []),
   };
@@ -4656,7 +4718,7 @@ function markRulesClean() {
   const el = document.getElementById("r-actions");
   if (el) el.classList.remove("is-dirty");
 }
-["r-z","r-max-turns","r-red","r-green"].forEach(id => {
+["r-z","r-max-turns"].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.addEventListener("input", markRulesDirty);
 });

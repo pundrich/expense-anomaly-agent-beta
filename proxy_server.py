@@ -1090,8 +1090,6 @@ def _wizard_system_prompt(txn: dict, rules: dict, max_turns: int, turns_used: in
         f"  - {c.get('category')}: soft cap ${c.get('soft_cap')}, hard cap ${c.get('hard_cap')}"
         for c in (rules.get("category_caps") or [])
     ) or "  (none configured)"
-    auto_red = ", ".join(rules.get("auto_red_keywords") or []) or "(none)"
-    auto_green = ", ".join(rules.get("auto_green_keywords") or []) or "(none)"
     enabled_rules = [r for r in (rules.get("active_rules") or []) if r.get("enabled", True)]
     policy = "\n".join(f"  - {r.get('text','')}" for r in enabled_rules) or "  (no rules configured)"
 
@@ -1113,12 +1111,6 @@ Company policy:
 
 Per-category caps:
 {caps_lines}
-
-Auto-RED phrases (if the user's answers reveal these patterns, lean RED):
-  {auto_red}
-
-Auto-GREEN phrases (clear approval/documentation references that lean GREEN):
-  {auto_green}
 
 Rules of the interview:
 1. Maximum {max_turns} questions. You have used {turns_used}.
@@ -1164,8 +1156,6 @@ Conversation so far:
 Current rules in effect:
 - Active rules:
 {chr(10).join('  - ' + (r.get('text','') or '') for r in (current_rules.get('active_rules') or []) if r.get('enabled', True)) or '  (none)'}
-- Auto-RED phrases: {', '.join(current_rules.get('auto_red_keywords', [])) or '(none)'}
-- Auto-GREEN phrases: {', '.join(current_rules.get('auto_green_keywords', [])) or '(none)'}
 
 Ask ONE concise clarifying question that will help you craft a precise rule. \
 Prefer multiple-choice when there are clear options. After 3-4 questions you \
