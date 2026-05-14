@@ -1434,6 +1434,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self._json(200, {"metadata": merged, "regex": regex_meta, "llm": llm_meta})
             except Exception as e:
                 self._json(500, {"error": str(e)})
+        elif path == "/api/rules/analyze-gaps":
+            # LLM-driven narrative critique of the full ruleset.
+            # Used by the auditor's "Deep AI analysis" button in the
+            # Coverage Gaps panel. Admin-only because it consumes LLM tokens.
+            if self._require_admin():
+                self._analyze_gaps()
         elif path == "/api/seed-mock-data":
             if self._require_researcher():
                 try:
@@ -1834,6 +1840,68 @@ class Handler(http.server.BaseHTTPRequestHandler):
             )
             text = (resp.choices[0].message.content or "").strip()
             return self._json(200, {"text": text, "model": LLM_MODEL})
+        except Exception as e:
+            return self._json(500, {"error": str(e)})
+
+    def _analyze_gaps(self):
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            data = json.loads(self.rfile.read(length))
+            rules_payload = data.get("rules") or {}
+            active = [r for r in (rules_payload.get("active_rules") or []) if r.get("enabled") is not False]
+            if not active:
+                return self._json(200, {
+                    "analysis": "Your ruleset is currently empty (no enabled rules). Load the example pack or draft rules with the AI wizard to get a meaningful critique.",
+                    "model": LLM_MODEL,
+                    "rule_count": 0,
+                })
+            # Compact representation: text + key metadata only, no provenance/ids
+            def fmt_rule(r):
+                m = r.get("metadata") or {}
+                bits = []
+                if m.get("category"): bits.append(f"cat={m['category']}")
+                if m.get("control_function"): bits.append(f"fn={m['control_function']}")
+                if m.get("control_activity"): bits.append(f"pca={m['control_activity']}")
+                if m.get("soft_threshold_usd"): bits.append(f"soft=${m['soft_threshold_usd']}")
+                if m.get("hard_threshold_usd"): bits.append(f"hard=${m['hard_threshold_usd']}")
+                if m.get("authorizer"): bits.append(f"auth={m['authorizer']}")
+                tag = (" [" + ", ".join(bits) + "]") if bits else ""
+                return f"- {r.get('text', '').strip()}{tag}"
+            rule_block = "\n".join(fmt_rule(r) for r in active[:60])  # cap at 60 rules to bound prompt
+            prompt = (
+                "You are a senior internal-controls auditor reviewing an expense-anomaly-detection ruleset "
+                "for a small institution (charter school scale). Apply the COSO 2013 framework: assess coverage "
+                "across the three control functions (preventive, detective, corrective) and the seven Physical "
+                "Control Activities (authorization, segregation of duties, design/use of documents and records, "
+                "safeguarding assets, independent checks, change management, project development).\n\n"
+                "Below is the current ruleset. Each line is one active rule followed by structured metadata in "
+                "square brackets.\n\n"
+                f"{rule_block}\n\n"
+                "Write a critique with exactly these four sections, in this order:\n"
+                "1. Strengths — 1-2 sentences naming what this ruleset does well.\n"
+                "2. Specific gaps — bullet list. For each gap, name the missing PCA or function-type and "
+                "explain why it matters in plain English. Cite specific categories where applicable.\n"
+                "3. Over-reach risks — bullet list of rules that look too broad, too punitive, or duplicated. "
+                "If none, say so explicitly.\n"
+                "4. Recommended next 3 rules — numbered list with a one-sentence concrete rule each, written "
+                "in declarative form ready to paste into the Active rules panel.\n\n"
+                "Keep total output under 350 words. Plain text, no markdown headers or asterisks."
+            )
+            client = get_client()
+            resp = client.chat.completions.create(
+                model=LLM_MODEL,
+                max_tokens=900,
+                messages=[{"role": "user", "content": prompt}],
+                reasoning_effort="low",
+            )
+            text = (resp.choices[0].message.content or "").strip()
+            actor = (session_info(self._bearer_token()) or {}).get("username")
+            log_event("gaps_analysis", actor, None, {"rule_count": len(active)})
+            return self._json(200, {
+                "analysis": text,
+                "model": LLM_MODEL,
+                "rule_count": len(active),
+            })
         except Exception as e:
             return self._json(500, {"error": str(e)})
 

@@ -520,6 +520,198 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
   font-size: 11px; color: #9ca3af; font-style: italic; margin-top: 8px;
 }
 
+/* ======== documentation requirements ======== */
+.doc-reqs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.doc-reqs-table th {
+  text-align: left; padding: 8px 10px; background: #f9fafb;
+  font-size: 11px; color: #4b5563; text-transform: uppercase;
+  letter-spacing: .04em; border-bottom: 1px solid #e5e7eb;
+}
+.doc-reqs-table td {
+  padding: 8px 10px; border-bottom: 1px solid #f3f4f6; vertical-align: top;
+}
+.doc-reqs-table .source-rule {
+  font-size: 11px; color: #6b7280; max-width: 280px; line-height: 1.5;
+}
+.doc-chip {
+  display: inline-flex; align-items: center; gap: 2px;
+  background: #e0f2fe; color: #075985;
+  padding: 2px 4px 2px 8px; border-radius: 12px;
+  font-size: 11px; margin: 2px 4px 2px 0;
+}
+.doc-chip .chip-x {
+  background: transparent; border: 0; cursor: pointer; color: #075985;
+  font-size: 14px; line-height: 1; padding: 0 4px;
+}
+.doc-chip .chip-x:hover { color: #b91c1c; }
+.doc-add-input {
+  border: 1px solid #d1d5db; border-radius: 4px;
+  font: inherit; font-size: 12px; padding: 3px 8px;
+  width: 130px; vertical-align: middle; margin-left: 4px;
+}
+
+/* ======== control classification ======== */
+.ctrl-class-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 4px;
+}
+@media (max-width: 800px) { .ctrl-class-grid { grid-template-columns: 1fr; } }
+.ctrl-class-grid h4 {
+  margin: 0 0 8px; font-size: 12px; color: #1f2937; font-weight: 600;
+}
+.ctrl-bar-list { display: flex; flex-direction: column; gap: 6px; }
+.ctrl-bar-row {
+  display: grid; grid-template-columns: 150px 1fr 32px;
+  gap: 8px; align-items: center; font-size: 12px;
+}
+.ctrl-bar-row .label { color: #374151; }
+.ctrl-bar-track {
+  background: #f3f4f6; height: 14px; border-radius: 4px;
+  position: relative; overflow: hidden;
+}
+.ctrl-bar-fill {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: #1f4e78; border-radius: 4px; transition: width .2s;
+}
+.ctrl-bar-fill.preventive { background: #1f4e78; }
+.ctrl-bar-fill.detective  { background: #16a34a; }
+.ctrl-bar-fill.corrective { background: #ea580c; }
+.ctrl-bar-fill.zero       { background: #fecaca; }
+.ctrl-bar-row .count {
+  font-variant-numeric: tabular-nums; color: #6b7280;
+  text-align: right; font-size: 12px;
+}
+.ctrl-gap-warn {
+  margin-top: 12px; padding: 8px 12px;
+  background: #fef2f2; border-left: 3px solid #dc2626;
+  color: #991b1b; font-size: 12px; border-radius: 4px;
+}
+
+/* ======== risk response matrix ======== */
+.risk-matrix-wrap {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr;
+  grid-template-rows: 28px 1fr 1fr;
+  gap: 8px; margin-top: 4px;
+}
+.risk-matrix-wrap .axis-col {
+  font-size: 11px; color: #4b5563; text-transform: uppercase;
+  letter-spacing: .04em; display: flex;
+  align-items: center; justify-content: center;
+}
+.risk-matrix-wrap .axis-row {
+  font-size: 11px; color: #4b5563; text-transform: uppercase;
+  letter-spacing: .04em; display: flex;
+  align-items: center; justify-content: center;
+  writing-mode: vertical-rl; transform: rotate(180deg);
+}
+.risk-cell {
+  background: white; border: 1px solid #e5e7eb; border-radius: 8px;
+  padding: 10px; min-height: 140px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.risk-cell .rec {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; padding: 2px 6px;
+  border-radius: 4px; align-self: flex-start;
+}
+.risk-cell .rec.accept { background: #d1fae5; color: #065f46; }
+.risk-cell .rec.share  { background: #dbeafe; color: #1e40af; }
+.risk-cell .rec.reduce { background: #fef3c7; color: #92400e; }
+.risk-cell .rec.avoid  { background: #fee2e2; color: #991b1b; }
+.risk-cell .rule-pip {
+  font-size: 11px; padding: 4px 6px; border-radius: 4px;
+  background: #f9fafb; color: #374151;
+  border: 1px solid #e5e7eb; line-height: 1.4;
+  word-break: break-word;
+}
+.risk-cell .rule-pip.mismatch {
+  border-color: #fbbf24; background: #fffbeb;
+}
+.risk-cell .rule-pip .mismatch-tag {
+  display: inline-block; font-size: 9px; font-weight: 700;
+  padding: 1px 4px; border-radius: 3px; margin-left: 4px;
+  background: #f59e0b; color: white; vertical-align: middle;
+}
+.risk-cell .empty {
+  font-size: 11px; color: #9ca3af; font-style: italic;
+}
+.risk-unclassified {
+  margin-top: 14px; padding: 10px 14px;
+  background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 6px;
+  font-size: 12px; color: #4b5563;
+}
+.risk-unclassified .uc-list { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+.risk-unclassified .uc-rule {
+  font-size: 11px; color: #374151; padding: 3px 0;
+}
+
+/* ======== coverage gaps & ai suggestions ======== */
+.gap-list { display: flex; flex-direction: column; gap: 10px; }
+.gap-card {
+  border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px;
+  background: white; display: grid;
+  grid-template-columns: 1fr auto; gap: 10px;
+  align-items: start;
+}
+.gap-card.high   { border-left: 4px solid #dc2626; }
+.gap-card.medium { border-left: 4px solid #ea580c; }
+.gap-card.low    { border-left: 4px solid #d97706; }
+.gap-card .sev {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; padding: 2px 6px; border-radius: 4px;
+  display: inline-block; vertical-align: middle; margin-right: 8px;
+}
+.gap-card.high   .sev { background: #fee2e2; color: #991b1b; }
+.gap-card.medium .sev { background: #ffedd5; color: #9a3412; }
+.gap-card.low    .sev { background: #fef3c7; color: #92400e; }
+.gap-card .title {
+  font-size: 13px; font-weight: 600; color: #111827; margin: 0 0 4px;
+}
+.gap-card .desc {
+  font-size: 12px; color: #4b5563; line-height: 1.5; margin: 0;
+}
+.gap-card .actions {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.gap-card .actions .btn {
+  white-space: nowrap; font-size: 12px; padding: 6px 10px;
+}
+.gap-clean {
+  padding: 14px; text-align: center; color: #065f46;
+  background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px;
+  font-size: 13px;
+}
+.gap-clean b { color: #047857; }
+
+.gap-ai-section { margin-top: 16px; }
+.gap-ai-controls {
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+}
+.gap-ai-result {
+  margin-top: 12px; padding: 14px 16px;
+  background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 8px;
+  font-size: 13px; color: #1f2937; line-height: 1.6;
+  white-space: pre-wrap;
+}
+.gap-ai-result h4 {
+  margin: 0 0 6px; color: #5b21b6; font-size: 13px;
+}
+.gap-ai-result .meta-line {
+  font-size: 11px; color: #6b7280; margin-top: 8px;
+}
+.gap-ai-busy {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; color: #6b7280;
+}
+.gap-ai-busy::before {
+  content: ""; width: 10px; height: 10px; border-radius: 50%;
+  background: #c4b5fd; animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .4; transform: scale(.7); }
+}
+
 .rules-actions {
   display: flex; gap: 10px; align-items: center; justify-content: flex-end;
   margin-top: 18px; padding: 14px 16px;
@@ -989,6 +1181,79 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
             <tbody id="r-auth-matrix"></tbody>
           </table>
           <p class="derived-note">This view is read-only - to change who authorizes what, edit the underlying rule above (or the Per-category caps row).</p>
+        </div>
+
+        <div class="rules-panel full">
+          <h3>Documentation requirements <span style="font-size:11px;color:#9ca3af;font-weight:normal">(derived from Active rules &middot; "Design and use of documents and records")</span></h3>
+          <p class="desc">What documents must accompany each rule. Click &times; on a chip to remove a required doc; type in the input + press Enter to add one. Edits here update the underlying rule's metadata.</p>
+          <table class="caps-table doc-reqs-table">
+            <thead><tr><th style="width:160px">Category</th><th>Required documents</th><th style="width:280px">Source rule</th></tr></thead>
+            <tbody id="r-doc-reqs"></tbody>
+          </table>
+          <p class="derived-note">Common doc types: receipt, PO, invoice, contract, training plan, Concur entry, campaign plan reference. Rules without a category appear as "(any category)".</p>
+        </div>
+
+        <div class="rules-panel full">
+          <h3>Control classification <span style="font-size:11px;color:#9ca3af;font-weight:normal">(derived from Active rules &middot; COSO 2013)</span></h3>
+          <p class="desc">Coverage of your rule set across the three control functions and the seven Physical Control Activities. A zero count is usually a control gap worth investigating.</p>
+          <div class="ctrl-class-grid">
+            <div>
+              <h4>By control function</h4>
+              <div class="ctrl-bar-list" id="r-class-function"></div>
+            </div>
+            <div>
+              <h4>By Physical Control Activity</h4>
+              <div class="ctrl-bar-list" id="r-class-activity"></div>
+            </div>
+          </div>
+          <div id="r-class-gaps"></div>
+          <p class="derived-note">Disabled rules are excluded from these counts. Click <b>↻ AI</b> on a rule to re-extract its classification.</p>
+        </div>
+
+        <div class="rules-panel full">
+          <h3>Risk response matrix <span style="font-size:11px;color:#9ca3af;font-weight:normal">(derived from Active rules &middot; Likelihood &times; Impact)</span></h3>
+          <p class="desc">Where each rule sits on the 2&times;2 risk grid. The four corners show the standard recommended response (Accept / Share / Reduce / Avoid); rules whose declared response disagrees with the quadrant's recommendation are flagged.</p>
+          <div class="risk-matrix-wrap">
+            <div></div>
+            <div class="axis-col">Low impact</div>
+            <div class="axis-col">High impact</div>
+
+            <div class="axis-row">High likelihood</div>
+            <div class="risk-cell">
+              <div class="rec reduce">Reduce</div>
+              <div id="r-risk-high-low" style="flex:1"></div>
+            </div>
+            <div class="risk-cell">
+              <div class="rec avoid">Avoid</div>
+              <div id="r-risk-high-high" style="flex:1"></div>
+            </div>
+
+            <div class="axis-row">Low likelihood</div>
+            <div class="risk-cell">
+              <div class="rec accept">Accept</div>
+              <div id="r-risk-low-low" style="flex:1"></div>
+            </div>
+            <div class="risk-cell">
+              <div class="rec share">Share</div>
+              <div id="r-risk-low-high" style="flex:1"></div>
+            </div>
+          </div>
+          <div id="r-risk-unclassified"></div>
+          <p class="derived-note">"Medium" likelihood/impact is plotted as "Low" for the grid. Rules without both likelihood and impact metadata appear below the grid; use <b>↻ AI</b> on a rule to classify them.</p>
+        </div>
+
+        <div class="rules-panel full">
+          <h3>Coverage gaps &amp; AI suggestions <span style="font-size:11px;color:#9ca3af;font-weight:normal">(derived from Active rules &middot; click "Draft a rule" to send the gap to the AI wizard)</span></h3>
+          <p class="desc">Where your control framework has holes — categories with no authorization rules, function-types you've missed, anti-circumvention checks not yet written. Each suggestion can be sent straight to the AI rule wizard with the strategy pre-filled.</p>
+          <div id="r-gaps-list" class="gap-list"></div>
+          <div class="gap-ai-section">
+            <div class="gap-ai-controls">
+              <button class="btn small" id="r-gaps-ai-btn" type="button">✨ Deep AI analysis of my ruleset</button>
+              <span class="gap-ai-busy" id="r-gaps-ai-busy" style="display:none">Analyzing your ruleset...</span>
+            </div>
+            <div id="r-gaps-ai-result"></div>
+          </div>
+          <p class="derived-note">The deterministic gaps above are computed locally and refresh as you edit rules. The Deep AI analysis sends your full ruleset to the model for a narrative critique — about 3-5 seconds.</p>
         </div>
 
         <div class="rules-panel full">
@@ -3170,8 +3435,7 @@ function paintRulesEditor() {
   $("#r-z").value = currentRules.z_threshold;
   $("#r-max-turns").value = currentRules.wizard_max_turns;
   paintActiveRules();
-  paintCapsTable();
-  paintAuthMatrix();
+  paintDerivedPanels();
 }
 
 // =============================================================
@@ -3261,8 +3525,7 @@ async function reanalyzeRule(idx) {
     if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
     rule.metadata = { ...(rule.metadata || {}), ...(j.metadata || {}) };
     paintActiveRules();
-    paintCapsTable();
-    paintAuthMatrix();
+    paintDerivedPanels();
     markRulesDirty();
     toast("Metadata refreshed.");
   } catch (e) {
@@ -3275,6 +3538,7 @@ function toggleActiveRule(idx) {
   if (!rules[idx]) return;
   rules[idx].enabled = !(rules[idx].enabled !== false);
   paintActiveRules();
+  paintDerivedPanels();
   markRulesDirty();
 }
 
@@ -3285,6 +3549,7 @@ function deleteActiveRule(idx) {
   if (!confirm(`Delete this rule?\n\n"${rule.text}"\n\nThis cannot be undone (other than re-typing).`)) return;
   currentRules.active_rules = rules.filter((_, i) => i !== idx);
   paintActiveRules();
+  paintDerivedPanels();
   markRulesDirty();
 }
 
@@ -3356,6 +3621,7 @@ function commitNewRule() {
   input.value = "";
   document.getElementById("rules-add-row").style.display = "none";
   paintActiveRules();
+  paintDerivedPanels();
   markRulesDirty();
   toast("Rule added — remember to click Save to persist.");
 }
@@ -3430,8 +3696,7 @@ if (_rulesLoadPackBtn) {
       });
     });
     paintActiveRules();
-    paintCapsTable();
-    paintAuthMatrix();
+    paintDerivedPanels();
     markRulesDirty();
     toast(`Added ${toAdd.length} example rule${toAdd.length === 1 ? "" : "s"}. Click Save to persist.`);
   });
@@ -3444,6 +3709,7 @@ if (_origRwAccept) {
     setTimeout(async () => {
       await loadRules();
       paintActiveRules();
+      paintDerivedPanels();
     }, 800);
   });
 }
@@ -3496,7 +3762,7 @@ function paintCapsTable() {
     });
     inp.addEventListener("change", () => {
       paintActiveRules();
-      paintAuthMatrix();
+      paintDerivedPanels();
     });
   });
   tb.querySelectorAll("button[data-del-rule]").forEach(b => {
@@ -3507,8 +3773,7 @@ function paintCapsTable() {
       if (!confirm(`Delete the underlying rule?\n\n"${rule.text}"\n\nThis removes both the cap row and the rule itself.`)) return;
       currentRules.active_rules.splice(idx, 1);
       paintActiveRules();
-      paintCapsTable();
-      paintAuthMatrix();
+      paintDerivedPanels();
       markRulesDirty();
     });
   });
@@ -3578,6 +3843,467 @@ function paintAuthMatrix() {
   });
 }
 
+// =============================================================
+//  Documentation Requirements — DERIVED, bidirectional.
+//  Shows one row per rule that either lists required docs or is tagged
+//  as the documents_records control activity. Chip × removes a doc;
+//  the small input + Enter adds one. All edits sync back to the rule's
+//  metadata AND regenerate its text deterministically.
+// =============================================================
+function paintDocReqs() {
+  const tb = document.getElementById("r-doc-reqs");
+  if (!tb) return;
+  tb.innerHTML = "";
+  const rules = currentRules.active_rules || [];
+  const rows = rules
+    .map((r, ruleIdx) => ({ r, ruleIdx }))
+    .filter(({ r }) => {
+      if (r.enabled === false) return false;
+      const m = r.metadata || {};
+      const hasDocs = Array.isArray(m.required_docs) && m.required_docs.length > 0;
+      const isDocsActivity = m.control_activity === "documents_records";
+      return hasDocs || isDocsActivity;
+    });
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="3" style="padding:14px;text-align:center;color:#9ca3af">No documentation rules yet. Add a rule like "Equipment purchases above $1,000 require an attached invoice in Concur" and it will appear here automatically.</td></tr>`;
+    return;
+  }
+  rows.forEach(({ r, ruleIdx }) => {
+    const m = r.metadata || {};
+    const docs = Array.isArray(m.required_docs) ? m.required_docs : [];
+    const cat = m.category || "<i style='color:#9ca3af'>(any category)</i>";
+    const chips = docs.map((d, di) =>
+      `<span class="doc-chip">${escapeHtml(d)}<button class="chip-x" data-rule-idx="${ruleIdx}" data-doc-idx="${di}" title="Remove">&times;</button></span>`
+    ).join("");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${cat}</td>
+      <td>
+        <div data-chip-cell="${ruleIdx}">${chips || '<span style="font-size:11px;color:#9ca3af;font-style:italic">no documents listed</span>'}</div>
+        <input class="doc-add-input" type="text" placeholder="+ add doc (Enter)" data-rule-idx="${ruleIdx}" />
+      </td>
+      <td class="source-rule">${escapeHtml(r.text || "")}</td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll(".chip-x").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const ruleIdx = +btn.dataset.ruleIdx;
+      const docIdx = +btn.dataset.docIdx;
+      const rule = currentRules.active_rules[ruleIdx];
+      if (!rule || !rule.metadata || !Array.isArray(rule.metadata.required_docs)) return;
+      rule.metadata.required_docs.splice(docIdx, 1);
+      rule.text = jsRegenerateRuleText(rule.metadata, rule.text);
+      markRulesDirty();
+      paintActiveRules();
+      paintDocReqs();
+    });
+  });
+  tb.querySelectorAll(".doc-add-input").forEach(inp => {
+    inp.addEventListener("keydown", e => {
+      if (e.key !== "Enter") return;
+      e.preventDefault();
+      const ruleIdx = +inp.dataset.ruleIdx;
+      const doc = inp.value.trim();
+      if (!doc) return;
+      const rule = currentRules.active_rules[ruleIdx];
+      if (!rule) return;
+      rule.metadata = rule.metadata || {};
+      rule.metadata.required_docs = Array.isArray(rule.metadata.required_docs) ? rule.metadata.required_docs : [];
+      if (!rule.metadata.required_docs.includes(doc)) {
+        rule.metadata.required_docs.push(doc);
+      }
+      rule.text = jsRegenerateRuleText(rule.metadata, rule.text);
+      inp.value = "";
+      markRulesDirty();
+      paintActiveRules();
+      paintDocReqs();
+    });
+  });
+}
+
+// =============================================================
+//  Control Classification — coverage of the rule set across the
+//  3 control functions (preventive / detective / corrective) and
+//  the 7 Physical Control Activities (slide 10-32).
+// =============================================================
+const ACTIVITY_LABELS = {
+  authorization:          "Authorization",
+  segregation_of_duties:  "Segregation of duties",
+  documents_records:      "Design & use of docs/records",
+  safeguarding_assets:    "Safeguarding assets",
+  independent_checks:     "Independent checks",
+  change_management:      "Change management",
+  project_development:    "Project development",
+};
+const FUNCTION_LABELS = {
+  preventive: "Preventive",
+  detective:  "Detective",
+  corrective: "Corrective",
+};
+
+function paintControlClassification() {
+  const enabled = (currentRules.active_rules || []).filter(r => r.enabled !== false);
+
+  // Function counts
+  const fnCounts = { preventive: 0, detective: 0, corrective: 0, unclassified: 0 };
+  enabled.forEach(r => {
+    const f = (r.metadata && r.metadata.control_function) || "unclassified";
+    if (fnCounts[f] === undefined) fnCounts.unclassified += 1;
+    else fnCounts[f] += 1;
+  });
+  const fnMax = Math.max(1, ...Object.values(fnCounts));
+  const fnHost = document.getElementById("r-class-function");
+  if (fnHost) {
+    fnHost.innerHTML = ["preventive", "detective", "corrective", "unclassified"].map(k => {
+      const label = k === "unclassified" ? "(unclassified)" : FUNCTION_LABELS[k];
+      const n = fnCounts[k];
+      const pct = (n / fnMax) * 100;
+      const klass = n === 0 ? "zero" : k;
+      return `<div class="ctrl-bar-row">
+        <div class="label">${label}</div>
+        <div class="ctrl-bar-track"><div class="ctrl-bar-fill ${klass}" style="width:${pct}%"></div></div>
+        <div class="count">${n}</div>
+      </div>`;
+    }).join("");
+  }
+
+  // Activity counts
+  const actKeys = Object.keys(ACTIVITY_LABELS);
+  const actCounts = {};
+  actKeys.forEach(k => actCounts[k] = 0);
+  actCounts.unclassified = 0;
+  enabled.forEach(r => {
+    const a = (r.metadata && r.metadata.control_activity) || "unclassified";
+    if (actCounts[a] === undefined) actCounts.unclassified += 1;
+    else actCounts[a] += 1;
+  });
+  const actMax = Math.max(1, ...Object.values(actCounts));
+  const actHost = document.getElementById("r-class-activity");
+  if (actHost) {
+    actHost.innerHTML = [...actKeys, "unclassified"].map(k => {
+      const label = k === "unclassified" ? "(unclassified)" : ACTIVITY_LABELS[k];
+      const n = actCounts[k];
+      const pct = (n / actMax) * 100;
+      const klass = n === 0 ? "zero" : "";
+      return `<div class="ctrl-bar-row">
+        <div class="label">${label}</div>
+        <div class="ctrl-bar-track"><div class="ctrl-bar-fill ${klass}" style="width:${pct}%"></div></div>
+        <div class="count">${n}</div>
+      </div>`;
+    }).join("");
+  }
+
+  // Gap warnings — flag zero buckets that matter
+  const gapHost = document.getElementById("r-class-gaps");
+  if (gapHost) {
+    const gaps = [];
+    if (fnCounts.detective === 0) {
+      gaps.push("No <b>detective</b> controls — consider adding monthly reconciliations, quarterly RED-flag reviews, or independent audits.");
+    }
+    if (fnCounts.corrective === 0 && enabled.length > 0) {
+      gaps.push("No <b>corrective</b> controls — consider adding remediation steps (e.g. clawback, backup restoration, re-issuance).");
+    }
+    if (actCounts.segregation_of_duties === 0) {
+      gaps.push("No <b>segregation of duties</b> rules — at least one rule should prevent the same person submitting and approving.");
+    }
+    if (actCounts.independent_checks === 0) {
+      gaps.push("No <b>independent checks</b> — schedule periodic reviews by someone outside the requester's chain.");
+    }
+    if (fnCounts.unclassified > 0 || actCounts.unclassified > 0) {
+      const u = Math.max(fnCounts.unclassified, actCounts.unclassified);
+      gaps.push(`<b>${u} rule${u === 1 ? "" : "s"}</b> not classified — click <b>↻ AI</b> on a rule to extract its function and activity.`);
+    }
+    gapHost.innerHTML = gaps.length
+      ? gaps.map(g => `<div class="ctrl-gap-warn">${g}</div>`).join("")
+      : "";
+  }
+}
+
+// =============================================================
+//  Risk Response Matrix — 2x2 grid: Likelihood × Impact.
+//  Only "high" counts as high; "medium"/"low"/missing → low.
+//  Rules without BOTH likelihood and impact are listed below the grid.
+// =============================================================
+const QUADRANT_REC = {
+  "high-high": "avoid",
+  "high-low":  "reduce",
+  "low-high":  "share",
+  "low-low":   "accept",
+};
+
+function paintRiskMatrix() {
+  const enabled = (currentRules.active_rules || []).filter(r => r.enabled !== false);
+  const cells = {
+    "high-high": [], "high-low": [], "low-high": [], "low-low": [],
+  };
+  const unclassified = [];
+  enabled.forEach((r, idx) => {
+    const m = r.metadata || {};
+    const hasL = m.likelihood && m.likelihood !== "";
+    const hasI = m.impact && m.impact !== "";
+    if (!hasL || !hasI) {
+      unclassified.push({ r, idx });
+      return;
+    }
+    const l = (String(m.likelihood).toLowerCase() === "high") ? "high" : "low";
+    const i = (String(m.impact).toLowerCase() === "high") ? "high" : "low";
+    cells[l + "-" + i].push({ r, idx });
+  });
+
+  const truncate = (s, n) => (s && s.length > n) ? s.slice(0, n - 1) + "…" : (s || "");
+  const renderCell = (key, hostId) => {
+    const host = document.getElementById(hostId);
+    if (!host) return;
+    const recommended = QUADRANT_REC[key];
+    const list = cells[key];
+    if (!list.length) {
+      host.innerHTML = `<div class="empty">No rules in this quadrant.</div>`;
+      return;
+    }
+    host.innerHTML = list.map(({ r }) => {
+      const declared = (r.metadata && r.metadata.risk_response) || "";
+      const mismatch = declared && declared !== recommended;
+      const klass = mismatch ? "rule-pip mismatch" : "rule-pip";
+      const tag = mismatch ? `<span class="mismatch-tag" title="Declared response (${declared}) does not match the quadrant's recommendation (${recommended})">≠</span>` : "";
+      return `<div class="${klass}" title="${escapeHtml(r.text || "")}">${escapeHtml(truncate(r.text || "", 110))}${tag}</div>`;
+    }).join("");
+  };
+  renderCell("high-low",  "r-risk-high-low");
+  renderCell("high-high", "r-risk-high-high");
+  renderCell("low-low",   "r-risk-low-low");
+  renderCell("low-high",  "r-risk-low-high");
+
+  const ucHost = document.getElementById("r-risk-unclassified");
+  if (ucHost) {
+    if (!unclassified.length) {
+      ucHost.innerHTML = "";
+    } else {
+      const items = unclassified.map(({ r }) =>
+        `<div class="uc-rule">&middot; ${escapeHtml(truncate(r.text || "", 140))}</div>`
+      ).join("");
+      ucHost.innerHTML = `<div class="risk-unclassified">
+        <div><b>${unclassified.length} rule${unclassified.length === 1 ? "" : "s"}</b> not plotted — likelihood and/or impact metadata is missing:</div>
+        <div class="uc-list">${items}</div>
+      </div>`;
+    }
+  }
+}
+
+// =============================================================
+//  Coverage Gaps & AI Suggestions — deterministic gap detection +
+//  per-gap "Draft a rule" button that pre-fills the rule wizard.
+//  Plus a "Deep AI analysis" button that ships the full ruleset to
+//  the LLM for a narrative critique.
+// =============================================================
+const STANDARD_CATEGORIES = [
+  "Travel", "Marketing", "Consulting", "Equipment",
+  "Office Supplies", "Utilities", "Software/SaaS",
+];
+
+function computeCoverageGaps(rules) {
+  const enabled = rules.filter(r => r.enabled !== false);
+  const gaps = [];
+
+  const fnCounts = { preventive: 0, detective: 0, corrective: 0 };
+  const actCounts = {};
+  const catCounts = {};
+  const allCategories = new Set(STANDARD_CATEGORIES);
+
+  enabled.forEach(r => {
+    const m = r.metadata || {};
+    if (m.control_function && fnCounts[m.control_function] !== undefined) fnCounts[m.control_function]++;
+    if (m.control_activity) actCounts[m.control_activity] = (actCounts[m.control_activity] || 0) + 1;
+    if (m.category) {
+      allCategories.add(m.category);
+      const c = catCounts[m.category] = catCounts[m.category] || { auth: 0, docs: 0, detective: 0, any: 0 };
+      c.any++;
+      if (m.authorizer || m.hard_authorizer) c.auth++;
+      if ((m.required_docs || []).length) c.docs++;
+      if (m.control_function === "detective") c.detective++;
+    }
+  });
+
+  // Function-level gaps
+  if (enabled.length && fnCounts.detective === 0) {
+    gaps.push({
+      id: "fn-detective", severity: "high",
+      title: "No detective controls in the entire ruleset",
+      description: "Detective controls (reconciliations, periodic reviews, independent audits) catch what preventive controls miss. Without at least one, irregular activity can sit undetected indefinitely.",
+      suggestedStrategy: "I want a monthly reconciliation rule that compares actual category spend against approved plans, with any variance over $500 routed to the audit committee. The reviewer must be independent of the requester's chain.",
+    });
+  }
+  if (enabled.length > 5 && fnCounts.corrective === 0) {
+    gaps.push({
+      id: "fn-corrective", severity: "low",
+      title: "No corrective controls defined",
+      description: "Corrective controls describe what happens after a violation (clawback, remediation, vendor termination). Optional for small organizations but valuable on higher-risk spend categories.",
+      suggestedStrategy: "If a RED-flagged consulting or marketing expense is confirmed non-compliant after auditor review, the responsible department must reimburse from their next quarter's discretionary budget.",
+    });
+  }
+
+  // Activity-level gaps (the 7 PCAs)
+  if (enabled.length && !actCounts.segregation_of_duties) {
+    gaps.push({
+      id: "act-sod", severity: "high",
+      title: "No segregation-of-duties rule",
+      description: "At least one rule should prevent the same person from submitting and approving an expense above a meaningful threshold — the most fundamental of the seven Physical Control Activities.",
+      suggestedStrategy: "The same person cannot both submit and approve an expense above $1,000. Approval must route to a different individual at the same or higher authority level.",
+    });
+  }
+  if (enabled.length && !actCounts.independent_checks) {
+    gaps.push({
+      id: "act-checks", severity: "medium",
+      title: "No independent-checks rule",
+      description: "Independent checks (someone outside the requester's chain reviewing the work) catch errors and fraud the originator may not notice or self-report.",
+      suggestedStrategy: "All RED-flagged transactions and auditor overrides are reviewed quarterly by an audit committee member who has no reporting relationship to the requester or their department.",
+    });
+  }
+  if (enabled.length && !actCounts.documents_records) {
+    gaps.push({
+      id: "act-docs", severity: "high",
+      title: "No documentation requirements anywhere",
+      description: "Rules about what documents must accompany an expense (receipts, POs, contracts) are the most-cited PCA in audit findings. Without them, large transactions process with no paper trail.",
+      suggestedStrategy: "All transactions above $500 must have a receipt or invoice attached in Concur within 30 days of the expense date; transactions above $5,000 must additionally attach a signed PO.",
+    });
+  }
+
+  // Per-category coverage — limit to worst-covered to avoid panel bloat
+  const catGaps = [];
+  Array.from(allCategories).sort().forEach(cat => {
+    const c = catCounts[cat] || { auth: 0, docs: 0, detective: 0, any: 0 };
+    if (c.any === 0) {
+      catGaps.push({
+        id: `cat-empty-${cat.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        severity: "medium",
+        title: `${cat} has no category-specific rules`,
+        description: `${cat} expenses pass through with only ruleset-wide controls applied. Even one authorization or documentation rule will surface anomalies the AI can act on with confidence.`,
+        suggestedStrategy: `Draft a rule for ${cat} expenses. Above a soft threshold (e.g. $1,500) require Director sign-off, and require an itemized receipt or PO. Use the interview to settle exact thresholds and approvers based on typical ${cat} spend at our organization.`,
+      });
+    } else if (!c.auth) {
+      catGaps.push({
+        id: `cat-noauth-${cat.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        severity: "medium",
+        title: `${cat} has supporting rules but no authorization rule`,
+        description: `${cat} has at least one rule but no one is named as the approver above a dollar threshold. Without that, large ${cat} expenses can go through without any human sign-off.`,
+        suggestedStrategy: `Add an authorization rule for ${cat}: define a soft threshold requiring manager sign-off and a hard threshold requiring CFO sign-off. Suggest defaults based on typical ${cat} spend patterns at a small charter school.`,
+      });
+    }
+  });
+  gaps.push(...catGaps.slice(0, 3));
+
+  // Anti-circumvention patterns
+  const ruleBlob = enabled.map(r => (r.text || "").toLowerCase()).join(" ");
+  if (!/just[- ]below|below[- ]threshold|circumv/.test(ruleBlob)) {
+    gaps.push({
+      id: "anti-circum-below", severity: "medium",
+      title: "No anti-circumvention rule for just-below-threshold expenses",
+      description: "Requesters who know the approval threshold sometimes submit expenses just under it (e.g., $4,999 when the limit is $5,000) to avoid review. A targeted rule catches this pattern.",
+      suggestedStrategy: "Expenses landing within 2% of any approval threshold (e.g., $4,900-$5,000 when the threshold is $5,000) should be flagged YELLOW and require additional documentation, regardless of the requester's authority level.",
+    });
+  }
+  if (!/\bpersonal\b|\bforgot\b|\bmistake\b|\bunaware\b/.test(ruleBlob)) {
+    gaps.push({
+      id: "anti-circum-personal", severity: "medium",
+      title: 'No rule about "personal" / "forgot" / "mistake" explanations',
+      description: "When a requester explains a flagged expense as 'I forgot it was a personal card' or 'unaware of the policy', that's a strong signal the expense shouldn't be approved. A rule formalizes the auto-RED handling.",
+      suggestedStrategy: "Any explanation that contains the words 'personal', 'forgot', 'unaware', 'didn't realize', or 'mistake' should be classified RED automatically. The requester must resubmit with a substantive justification or accept that the expense will not be reimbursed.",
+    });
+  }
+  if (!/round[- ]number|exactly \$/.test(ruleBlob)) {
+    gaps.push({
+      id: "anti-circum-round", severity: "low",
+      title: "No rule about round-number expenses",
+      description: "Legitimate spend rarely lands exactly on $1,000.00 / $5,000.00 / $10,000.00 — fraud and made-up reimbursements often do. A round-number rule is a cheap detective check.",
+      suggestedStrategy: "Expenses with amounts that are exact round numbers ($500, $1,000, $5,000, $10,000) on Marketing or Consulting categories should be flagged YELLOW and require itemized documentation showing what was actually purchased.",
+    });
+  }
+
+  // Sort by severity
+  const sevRank = { high: 0, medium: 1, low: 2 };
+  gaps.sort((a, b) => sevRank[a.severity] - sevRank[b.severity]);
+
+  return gaps;
+}
+
+function paintCoverageGaps() {
+  const host = document.getElementById("r-gaps-list");
+  if (!host) return;
+  const rules = currentRules.active_rules || [];
+  const gaps = computeCoverageGaps(rules);
+  if (!gaps.length) {
+    host.innerHTML = `<div class="gap-clean">No deterministic gaps detected. <b>Nice coverage</b> across the seven Physical Control Activities and the common anti-circumvention patterns. Run the <b>Deep AI analysis</b> below for a model-driven critique that may catch subtler issues.</div>`;
+    return;
+  }
+  host.innerHTML = gaps.map(g => `
+    <div class="gap-card ${g.severity}">
+      <div>
+        <div class="title"><span class="sev">${g.severity}</span>${escapeHtml(g.title)}</div>
+        <div class="desc">${escapeHtml(g.description)}</div>
+      </div>
+      <div class="actions">
+        <button class="btn small" data-gap-id="${escapeHtml(g.id)}">Draft a rule</button>
+      </div>
+    </div>
+  `).join("");
+  host.querySelectorAll("button[data-gap-id]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const g = gaps.find(x => x.id === btn.dataset.gapId);
+      if (g) openRuleWizard(g.suggestedStrategy);
+    });
+  });
+}
+
+// Wire the Deep AI analysis button. Ships the current ruleset to the LLM
+// for a narrative critique. The endpoint already enforces auth + admin.
+const _rGapsAiBtn = document.getElementById("r-gaps-ai-btn");
+if (_rGapsAiBtn) {
+  _rGapsAiBtn.addEventListener("click", async () => {
+    const resultEl = document.getElementById("r-gaps-ai-result");
+    const busyEl = document.getElementById("r-gaps-ai-busy");
+    if (!resultEl || !busyEl) return;
+    busyEl.style.display = "inline-flex";
+    resultEl.innerHTML = "";
+    _rGapsAiBtn.disabled = true;
+    try {
+      const r = await authFetch("/api/rules/analyze-gaps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rules: currentRules }),
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+      const safeAnalysis = escapeHtml(j.analysis || "(no narrative returned)");
+      const modelName = escapeHtml(j.model || "?");
+      const ruleCount = +j.rule_count || 0;
+      resultEl.innerHTML = `
+        <div class="gap-ai-result">
+          <h4>AI critique</h4>
+          ${safeAnalysis}
+          <div class="meta-line">Model: ${modelName} &middot; analyzed ${ruleCount} active rule${ruleCount === 1 ? "" : "s"}</div>
+        </div>`;
+    } catch (e) {
+      resultEl.innerHTML = `<div class="gap-ai-result" style="background:#fef2f2;border-color:#fecaca;color:#991b1b">Analysis failed: ${escapeHtml(e.message)}</div>`;
+    } finally {
+      busyEl.style.display = "none";
+      _rGapsAiBtn.disabled = false;
+    }
+  });
+}
+
+// =============================================================
+//  Single helper that refreshes every derived view. Call from any
+//  mutation that changes the active_rules array (add, delete, toggle,
+//  reanalyze, wizard accept, example pack, caps edit).
+// =============================================================
+function paintDerivedPanels() {
+  paintCapsTable();
+  paintAuthMatrix();
+  paintDocReqs();
+  paintControlClassification();
+  paintRiskMatrix();
+  paintCoverageGaps();
+}
+
 $("#r-add-cap").addEventListener("click", () => {
   // Adding a cap means adding a new Active rule with the cap metadata.
   const cat = (prompt('New category name (e.g. "Travel", "Marketing"):') || "").trim();
@@ -3603,8 +4329,7 @@ $("#r-add-cap").addEventListener("click", () => {
     metadata: meta,
   });
   paintActiveRules();
-  paintCapsTable();
-  paintAuthMatrix();
+  paintDerivedPanels();
   markRulesDirty();
   toast("Cap added as a new Active rule. Edit the values, then Save.");
 });
@@ -4693,14 +5418,22 @@ renderTreatments = async function() {
 // =============================================================
 let ruleWizState = { strategy: "", history: [] };
 
-function openRuleWizard() {
+function openRuleWizard(prefillStrategy) {
   ruleWizState = { strategy: "", history: [] };
-  document.getElementById("rw-strategy").value = "";
+  const ta = document.getElementById("rw-strategy");
+  ta.value = prefillStrategy || "";
   document.getElementById("rw-history").innerHTML = "";
   document.getElementById("rw-step-strategy").style.display = "";
   document.getElementById("rw-step-interview").style.display = "none";
   document.getElementById("rw-step-propose").style.display = "none";
   document.getElementById("rule-wizard-modal").classList.add("show");
+  if (prefillStrategy) {
+    // Scroll focus so the prefill is visible and immediately editable.
+    setTimeout(() => {
+      ta.focus();
+      ta.setSelectionRange(ta.value.length, ta.value.length);
+    }, 80);
+  }
 }
 // "rw-open" was the legacy bottom-of-page wizard button (removed when we
 //  consolidated everything into the Active rules panel). The inline button
