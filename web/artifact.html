@@ -3552,11 +3552,14 @@ function buildRuleRow(rule, idx) {
 }
 
 // =============================================================
-//  Grouping helpers — group key + per-group collapsed state, both
-//  persisted to localStorage so the user's choice survives reloads.
+//  Grouping helpers — group key + per-group OPEN state. We track
+//  which groups are open (not which are closed) so that the default
+//  state (empty set = nothing in localStorage yet) means all groups
+//  are collapsed/minimized on first visit. The user can then open
+//  whichever sections they want and that state persists.
 // =============================================================
 const RULES_GROUP_KEY_LS = "rulesGroupBy";
-const RULES_GROUP_COLLAPSED_LS = "rulesGroupCollapsed";
+const RULES_GROUP_OPEN_LS = "rulesGroupOpen";
 
 function getRulesGroupBy() {
   return localStorage.getItem(RULES_GROUP_KEY_LS) || "category";
@@ -3565,18 +3568,18 @@ function setRulesGroupBy(v) {
   localStorage.setItem(RULES_GROUP_KEY_LS, v);
 }
 
-let _rulesGroupCollapsed = (() => {
-  try { return new Set(JSON.parse(localStorage.getItem(RULES_GROUP_COLLAPSED_LS) || "[]")); }
+let _rulesGroupOpen = (() => {
+  try { return new Set(JSON.parse(localStorage.getItem(RULES_GROUP_OPEN_LS) || "[]")); }
   catch (e) { return new Set(); }
 })();
-function _saveCollapsedSet() {
-  localStorage.setItem(RULES_GROUP_COLLAPSED_LS, JSON.stringify([..._rulesGroupCollapsed]));
+function _saveOpenSet() {
+  localStorage.setItem(RULES_GROUP_OPEN_LS, JSON.stringify([..._rulesGroupOpen]));
 }
-function isGroupCollapsed(name) { return _rulesGroupCollapsed.has(name); }
-function setGroupCollapsed(name, collapsed) {
-  if (collapsed) _rulesGroupCollapsed.add(name);
-  else _rulesGroupCollapsed.delete(name);
-  _saveCollapsedSet();
+function isGroupOpen(name) { return _rulesGroupOpen.has(name); }
+function setGroupOpen(name, open) {
+  if (open) _rulesGroupOpen.add(name);
+  else _rulesGroupOpen.delete(name);
+  _saveOpenSet();
 }
 
 // Custom orderings so groups appear in framework-aligned sequence,
@@ -3662,8 +3665,8 @@ function paintActiveRules() {
   Object.entries(groups).forEach(([groupName, items]) => {
     const details = document.createElement("details");
     details.className = "rule-group";
-    details.open = !isGroupCollapsed(groupName);
-    details.addEventListener("toggle", () => setGroupCollapsed(groupName, !details.open));
+    details.open = isGroupOpen(groupName);
+    details.addEventListener("toggle", () => setGroupOpen(groupName, details.open));
 
     const summary = document.createElement("summary");
     summary.innerHTML = `<span class="group-label">${escapeHtml(groupName)}</span><span class="group-count">${items.length} rule${items.length === 1 ? "" : "s"}</span>`;
@@ -3690,18 +3693,18 @@ if (_groupBySel) {
 const _expandAllBtn = document.getElementById("rules-group-expand-all");
 if (_expandAllBtn) {
   _expandAllBtn.addEventListener("click", () => {
-    _rulesGroupCollapsed.clear();
-    _saveCollapsedSet();
+    const rules = currentRules.active_rules || [];
+    const groups = groupRulesByKey(rules, getRulesGroupBy());
+    Object.keys(groups).forEach(name => _rulesGroupOpen.add(name));
+    _saveOpenSet();
     paintActiveRules();
   });
 }
 const _collapseAllBtn = document.getElementById("rules-group-collapse-all");
 if (_collapseAllBtn) {
   _collapseAllBtn.addEventListener("click", () => {
-    const rules = currentRules.active_rules || [];
-    const groups = groupRulesByKey(rules, getRulesGroupBy());
-    Object.keys(groups).forEach(name => _rulesGroupCollapsed.add(name));
-    _saveCollapsedSet();
+    _rulesGroupOpen.clear();
+    _saveOpenSet();
     paintActiveRules();
   });
 }
@@ -3946,6 +3949,16 @@ const EXAMPLE_RULE_PACK = [
     metadata: { soft_threshold_usd: 100, control_function: "preventive", control_activity: "safeguarding_assets", risk_response: "avoid", likelihood: "low", impact: "high" } },
   { text: "Petty cash disbursements at or below $50 with a receipt are pre-approved and need no additional review.",
     metadata: { category: "Petty Cash", hard_threshold_usd: 50, control_function: "preventive", control_activity: "authorization", risk_response: "accept", likelihood: "low", impact: "low" } },
+
+  // === Avoid quadrant (high likelihood × high impact) — categorical "no" rules ===
+  { text: "International travel without documented pre-approval from the CFO is prohibited; any such expense triggers RED and is not reimbursable.",
+    metadata: { category: "Travel", authorizer: "CFO", required_docs: ["pre-approval"], control_function: "preventive", control_activity: "authorization", risk_response: "avoid", likelihood: "high", impact: "high" } },
+  { text: "Payments to any vendor without a verified W-9 (US) or W-8 (foreign) on file are prohibited regardless of amount.",
+    metadata: { required_docs: ["W-9", "W-8"], control_function: "preventive", control_activity: "documents_records", risk_response: "avoid", likelihood: "high", impact: "high" } },
+  { text: "Same-day creation of a new vendor and payment of an invoice to that vendor is prohibited — at least 48 hours must elapse between vendor onboarding and first disbursement.",
+    metadata: { control_function: "preventive", control_activity: "segregation_of_duties", risk_response: "avoid", likelihood: "high", impact: "high" } },
+  { text: "Marketing spend above $500 on vendors not on the approved vendor list is prohibited; requester must submit a vendor-add request and wait for approval before purchasing.",
+    metadata: { category: "Marketing", soft_threshold_usd: 500, control_function: "preventive", control_activity: "documents_records", risk_response: "avoid", likelihood: "high", impact: "high" } },
 ];
 
 const _rulesLoadPackBtn = document.getElementById("rules-load-pack");
@@ -4097,11 +4110,12 @@ function paintCapsTable() {
   const capRules = rules
     .map((r, ruleIdx) => ({ r, ruleIdx }))
     .filter(({ r }) => {
+      if (r.enabled === false) return false;
       const m = r.metadata || {};
       return m.category && (m.soft_threshold_usd || m.hard_threshold_usd);
     });
   if (!capRules.length) {
-    tb.innerHTML = `<tr><td colspan="5" style="padding:14px;text-align:center;color:#9ca3af">No category caps yet. Add a rule like "Travel above $1,500 requires director sign-off" in the Active rules panel above and it will appear here automatically.</td></tr>`;
+    tb.innerHTML = `<tr><td colspan="5" style="padding:14px;text-align:center;color:#9ca3af">No category caps yet. Add a rule like "Travel above $1,500 requires director sign-off" in the Active rules panel above and it will appear here automatically. (Disabled rules are excluded.)</td></tr>`;
     return;
   }
   capRules.forEach(({ r, ruleIdx }) => {
@@ -4174,6 +4188,7 @@ function paintAuthMatrix() {
   const rules = currentRules.active_rules || [];
   const rows = [];
   rules.forEach(r => {
+    if (r.enabled === false) return;
     const m = r.metadata || {};
     if (!m.authorizer && !m.hard_authorizer) return;
     if (m.authorizer && m.soft_threshold_usd) {
