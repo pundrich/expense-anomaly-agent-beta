@@ -568,17 +568,24 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
 /* docreqs add-input stays a fixed pill width regardless of grouped-row rules */
 .grouped-row .doc-add-input { width: 140px; }
 
-/* ======== wizard supporting documents ======== */
-.wiz-docs-bar {
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  margin-top: 10px; padding-top: 10px;
-  border-top: 1px solid #e5e7eb;
-  font-size: 12px; color: #374151;
+/* ======== wizard supporting documents (in-turn upload mode) ======== */
+.wiz-upload-area {
+  border: 1px dashed #93c5fd;
+  background: #f0f9ff;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
 }
-.wiz-docs-label { color: #6b7280; flex-shrink: 0; }
+.wiz-upload-instr {
+  font-size: 12px; color: #1e3a8a; margin-bottom: 10px; line-height: 1.5;
+}
+.wiz-upload-actions {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
 .wiz-docs-list {
-  display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center;
-  flex: 1; min-width: 0;
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  min-height: 22px;
+  margin-bottom: 8px;
 }
 .wiz-docs-empty { color: #9ca3af; font-style: italic; font-size: 11px; }
 .wiz-doc-chip {
@@ -1842,20 +1849,24 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
       <h3>AI Auditor Wizard</h3>
       <p class="sub">A guided interview that classifies your expense without back-and-forth with the audit team.</p>
       <div class="ctx" id="wiz-ctx"></div>
-      <div class="wiz-docs-bar">
-        <span class="wiz-docs-label">Supporting documents:</span>
-        <span id="wiz-docs-list" class="wiz-docs-list"><span class="wiz-docs-empty">none attached yet</span></span>
-        <label class="wiz-doc-upload" title="Attach a receipt, invoice, or PO. PDF text is extracted automatically and shown to the AI.">
-          📎 Attach (PDF/image, &lt;5 MB)
-          <input type="file" id="wiz-doc-input" accept="application/pdf,image/png,image/jpeg,image/heic,image/webp">
-        </label>
-        <span class="wiz-doc-busy" id="wiz-doc-busy" style="display:none">Uploading…</span>
-      </div>
       <div class="wizard-progress"><div class="bar" id="wiz-bar" style="width:0%"></div></div>
     </div>
     <div class="wizard-body" id="wiz-body"></div>
     <div class="w-input" id="wiz-input">
       <div id="wiz-options" class="w-options" style="display:none"></div>
+      <!-- Upload area only shown when the LLM emits a type="upload" question. -->
+      <div id="wiz-upload-area" class="wiz-upload-area" style="display:none">
+        <div class="wiz-upload-instr">Attach a supporting document (PDF / image, up to 5 MB), or click <b>Skip</b> if you don't have one.</div>
+        <div id="wiz-docs-list" class="wiz-docs-list"></div>
+        <div class="wiz-upload-actions">
+          <label class="wiz-doc-upload" title="PDF text will be extracted automatically and shown to the AI on the next turn.">
+            📎 Choose file
+            <input type="file" id="wiz-doc-input" accept="application/pdf,image/png,image/jpeg,image/heic,image/webp">
+          </label>
+          <span class="wiz-doc-busy" id="wiz-doc-busy" style="display:none">Uploading…</span>
+          <button class="btn small ghost" id="wiz-skip-upload" type="button">Skip — no document available</button>
+        </div>
+      </div>
       <textarea id="wiz-answer" placeholder="Type your answer..."></textarea>
       <div class="w-actions">
         <span class="left" id="wiz-counter"></span>
@@ -5170,13 +5181,18 @@ document.querySelectorAll(".audit-tab").forEach(tab => {
 let wizState = null;  // { txn, history: [{question, answer, type}], current: {question, type, options} }
 
 function openWizard(f) {
-  wizState = { txn: f, history: [], current: null, docs: [] };
+  // _newDocsThisTurn tracks filenames uploaded during an upload turn so we can
+  // build a clean "Uploaded: a.pdf, b.jpg" answer when the user clicks Send.
+  wizState = { txn: f, history: [], current: null, docs: [], _newDocsThisTurn: [] };
   $("#wiz-ctx").innerHTML =
     `<b>${escapeHtml(f.vendor)}</b> &middot; ${escapeHtml(f.category)} &middot; ${fmtMoney(f.amount)} ` +
     `<span style="color:#9ca3af">(+${f.deviation_pct.toFixed(0)}% above category mean)</span>`;
-  // Load any pre-existing docs for this transaction so the wizard shows them
-  // (e.g. files already uploaded via the employee card before the wizard started).
-  loadWizardDocs();
+  // Don't auto-load docs here — the upload UI is only shown when the LLM
+  // emits a type="upload" question. The backend still injects pre-existing
+  // doc text into the system prompt regardless.
+  // Hide the upload area in case a prior wizard left it open.
+  const ua = $("#wiz-upload-area");
+  if (ua) ua.style.display = "none";
   $("#wiz-body").innerHTML =
     `<div class="w-turn q">Hi ${escapeHtml(f.requester)}, I'm going to ask a few quick questions to assess this expense. Click <b>Start</b> when you're ready.</div>`;
   // Reset any post-final UI from a previous run.
@@ -5227,18 +5243,19 @@ async function loadWizardDocs() {
   renderWizardDocs();
 }
 
+// Renders the chip list shown DURING an upload turn. Only docs the user
+// has just uploaded in this turn appear here (pre-existing docs are seen
+// by the AI via the backend prompt but kept out of the UI to stay focused).
 function renderWizardDocs() {
   const host = $("#wiz-docs-list");
   if (!host) return;
-  const docs = (wizState && wizState.docs) || [];
+  const docs = (wizState && wizState._newDocsThisTurn) || [];
   if (!docs.length) {
-    host.innerHTML = `<span class="wiz-docs-empty">none attached yet</span>`;
+    host.innerHTML = `<span class="wiz-docs-empty">no document attached yet</span>`;
     return;
   }
   host.innerHTML = docs.map(d => {
-    const isPdf = (d.mime_type || "").includes("pdf") || (d.filename || "").toLowerCase().endsWith(".pdf");
-    const hasText = isPdf && d.extracted_text && d.extracted_text.length > 10;
-    const tag = hasText
+    const tag = d.has_text
       ? `<span class="wiz-doc-ok" title="Text extracted and shown to the AI">AI ✓</span>`
       : `<span class="wiz-doc-skim" title="Image or scan — the AI will see the filename but not the contents">image</span>`;
     return `<span class="wiz-doc-chip">
@@ -5277,10 +5294,23 @@ $("#wiz-doc-input").addEventListener("change", async (e) => {
     });
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+    wizState._newDocsThisTurn = wizState._newDocsThisTurn || [];
+    wizState._newDocsThisTurn.push({
+      id: j.id,
+      filename: file.name,
+      mime_type: file.type || "application/octet-stream",
+      has_text: !!(j.extracted_text_preview && j.extracted_text_preview.length > 0),
+    });
+    renderWizardDocs();
+    // Enable Send now that the user has attached something. Update label so
+    // they know clicking Send will submit the attachment(s) as the answer.
+    const sendBtn = $("#wiz-send");
+    sendBtn.disabled = false;
+    const n = wizState._newDocsThisTurn.length;
+    sendBtn.textContent = `Send (${n} attachment${n === 1 ? "" : "s"})`;
     toast(j.extracted_text_preview
       ? `Uploaded ${file.name} — text extracted and will be shown to the AI.`
       : `Uploaded ${file.name} — the AI cannot read image contents; describe in your answer if relevant.`);
-    await loadWizardDocs();
   } catch (err) {
     toast("Upload failed: " + err.message);
   } finally {
@@ -5289,11 +5319,30 @@ $("#wiz-doc-input").addEventListener("change", async (e) => {
   }
 });
 
+// Skip-upload button: marks the upload turn as declined and submits immediately.
+const _wizSkipBtn = document.getElementById("wiz-skip-upload");
+if (_wizSkipBtn) _wizSkipBtn.addEventListener("click", () => {
+  if (!wizState || !wizState.current || wizState.current.type !== "upload") return;
+  // Compose a clear answer so the LLM knows the user declined.
+  $("#wiz-answer").value = "No document available for this transaction.";
+  // Hide the upload area immediately; Send handler will do the rest.
+  $("#wiz-upload-area").style.display = "none";
+  $("#wiz-send").disabled = false;
+  $("#wiz-send").click();
+});
+
 $("#wiz-send").addEventListener("click", async () => {
   if (!wizState) return;
   const sendBtn = $("#wiz-send");
   const ansEl = $("#wiz-answer");
   const optsEl = $("#wiz-options");
+  // For upload turns, compose the answer from the filenames the user attached
+  // this turn. (Skip button has already written its own answer into ansEl.value.)
+  if (wizState.current && wizState.current.type === "upload" && !(ansEl.value || "").trim()) {
+    const docs = wizState._newDocsThisTurn || [];
+    if (!docs.length) { toast("Please attach a document or click Skip."); return; }
+    ansEl.value = `Uploaded ${docs.length} document${docs.length === 1 ? "" : "s"}: ${docs.map(d => d.filename).join(", ")}`;
+  }
   // Collect the answer (if any)
   const answer = (ansEl.value || "").trim();
   if (wizState.current) {
@@ -5309,6 +5358,8 @@ $("#wiz-send").addEventListener("click", async () => {
   ansEl.value = "";
   optsEl.style.display = "none";
   optsEl.innerHTML = "";
+  const uploadEl = $("#wiz-upload-area");
+  if (uploadEl) uploadEl.style.display = "none";
   sendBtn.disabled = true; sendBtn.textContent = "Thinking...";
   appendThinking();
 
@@ -5397,7 +5448,25 @@ function askWizardTurn(turn) {
   appendTurn("q", turn.question);
   const ansEl = $("#wiz-answer");
   const optsEl = $("#wiz-options");
-  if (wizState.current.type === "select" && wizState.current.options.length) {
+  const uploadEl = $("#wiz-upload-area");
+  // Reset any per-turn upload bookkeeping carried over from a prior turn.
+  wizState._newDocsThisTurn = [];
+
+  if (wizState.current.type === "upload") {
+    // Upload turn — file picker takes the place of the textarea.
+    ansEl.style.display = "none";
+    ansEl.value = "";
+    optsEl.style.display = "none";
+    optsEl.innerHTML = "";
+    if (uploadEl) uploadEl.style.display = "block";
+    // Render the chip list (empty until user picks a file). Pre-existing
+    // docs are intentionally NOT shown — the AI sees them via the system
+    // prompt; we only surface this-turn uploads to keep the UX focused.
+    renderWizardDocs();
+    $("#wiz-send").disabled = true;
+    $("#wiz-send").textContent = "Send with attachment(s)";
+  } else if (wizState.current.type === "select" && wizState.current.options.length) {
+    if (uploadEl) uploadEl.style.display = "none";
     ansEl.style.display = "none";
     optsEl.innerHTML = "";
     optsEl.style.display = "flex";
@@ -5413,9 +5482,14 @@ function askWizardTurn(turn) {
       });
       optsEl.appendChild(b);
     });
+    $("#wiz-send").disabled = false;
+    $("#wiz-send").textContent = "Send";
   } else {
+    if (uploadEl) uploadEl.style.display = "none";
     ansEl.style.display = "block";
     ansEl.placeholder = "Type your answer...";
+    $("#wiz-send").disabled = false;
+    $("#wiz-send").textContent = "Send";
   }
   // progress
   const max = currentRules.wizard_max_turns || 6;
