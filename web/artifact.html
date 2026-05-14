@@ -469,6 +469,58 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
 }
 .rule-add-row input:focus { outline: none; border-color: #1f4e78; }
 
+/* ======== rule group bar + collapsible groups ======== */
+.rules-group-bar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 12px 0 10px; font-size: 12px;
+}
+.rules-group-bar label { color: #6b7280; font-size: 12px; margin: 0; }
+.rules-group-bar select {
+  font: inherit; font-size: 12px; padding: 4px 8px;
+  border: 1px solid #d1d5db; border-radius: 4px; background: white;
+  color: #111827; cursor: pointer;
+}
+.rules-group-bar select:focus { outline: none; border-color: #1f4e78; }
+.rules-group-bar .group-hint {
+  margin-left: auto; color: #9ca3af; font-size: 11px; font-style: italic;
+}
+.rules-group-bar .group-toggle-all {
+  background: transparent; border: 1px solid #d1d5db; border-radius: 4px;
+  font: inherit; font-size: 11px; color: #4b5563;
+  padding: 3px 8px; cursor: pointer;
+}
+.rules-group-bar .group-toggle-all:hover { background: #f9fafb; color: #1f2937; }
+
+.rule-group {
+  border: 1px solid #e5e7eb; border-radius: 8px;
+  background: #fafafa; margin-bottom: 8px;
+}
+.rule-group > summary {
+  list-style: none; cursor: pointer; padding: 10px 14px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 600; color: #111827;
+  user-select: none; border-radius: 8px;
+}
+.rule-group > summary::-webkit-details-marker { display: none; }
+.rule-group > summary::before {
+  content: "▸"; color: #6b7280; transition: transform .15s;
+  display: inline-block; width: 12px; flex-shrink: 0;
+}
+.rule-group[open] > summary::before { transform: rotate(90deg); }
+.rule-group > summary:hover { background: #f3f4f6; }
+.rule-group > summary .group-count {
+  font-size: 11px; font-weight: 500; color: #6b7280;
+  background: white; padding: 1px 8px; border-radius: 999px;
+  border: 1px solid #e5e7eb; margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+.rule-group .group-body {
+  padding: 4px 10px 10px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+/* When a rule-row is inside a group, drop its outer margin since the group has padding */
+.rule-group .group-body .rule-row { background: white; }
+
 /* ======== rule metadata (expandable per rule) ======== */
 .rule-row .meta-toggle {
   background: none; border: 0; cursor: pointer; color: #6b7280;
@@ -1155,6 +1207,19 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
               <div style="margin-top:8px;color:#6b7280">If you don't know where to start, click <b>✨ Draft with AI wizard</b> above - describe a single audit concern in your own words and the wizard will draft a structured rule for you.</div>
             </div>
           </details>
+          <div class="rules-group-bar">
+            <label for="rules-group-by">Group by:</label>
+            <select id="rules-group-by">
+              <option value="category">Category</option>
+              <option value="control_activity">Control activity (7 PCAs)</option>
+              <option value="control_function">Control function</option>
+              <option value="source">Source</option>
+              <option value="none">No grouping (flat list)</option>
+            </select>
+            <button class="group-toggle-all" id="rules-group-expand-all" type="button" title="Open every group">Expand all</button>
+            <button class="group-toggle-all" id="rules-group-collapse-all" type="button" title="Collapse every group">Collapse all</button>
+            <span class="group-hint">Click a group header to collapse / expand</span>
+          </div>
           <div class="rule-list" id="rules-list-container">
             <div class="rule-empty">No active rules yet. Click <b>+ Add rule manually</b> to add one, or use the <b>✨ Draft with AI wizard</b> button to have the AI propose one.</div>
           </div>
@@ -3444,6 +3509,141 @@ function paintRulesEditor() {
 // =============================================================
 //  Active rules panel: render / toggle / edit / delete / add
 // =============================================================
+// Builds one rule-row DOM element with all the toggle/edit/delete/reanalyze/
+// metadata-toggle handlers wired to the rule's index in currentRules.active_rules.
+// Used by both the flat-list path and the grouped path in paintActiveRules.
+function buildRuleRow(rule, idx) {
+  const row = document.createElement("div");
+  const enabled = rule.enabled !== false;
+  row.className = "rule-row " + (enabled ? "enabled" : "disabled");
+  row.dataset.idx = idx;
+  const date = rule.created_at ? new Date(rule.created_at * 1000).toLocaleDateString() : "";
+  const source = (rule.source || "manual").toLowerCase();
+  const author = rule.created_by ? " by " + escapeHtml(rule.created_by) : "";
+  const meta = rule.metadata || {};
+  const hasMeta = Object.keys(meta).filter(k => meta[k] !== null && meta[k] !== "" && (Array.isArray(meta[k]) ? meta[k].length : true)).length > 0;
+  row.innerHTML = `
+    <div class="toggle" title="${enabled ? 'Click to disable' : 'Click to enable'}"></div>
+    <div class="body">
+      <div class="text">${escapeHtml(rule.text || "")}</div>
+      <div class="meta">
+        <span class="source-tag ${source}">${escapeHtml(source)}</span>
+        ${date ? `Added ${date}${author}` : ""}
+      </div>
+      <button class="meta-toggle" type="button">Show structured metadata${hasMeta ? "" : " (none extracted yet)"}</button>
+      <div class="meta-block">${renderMetaBlock(meta)}</div>
+    </div>
+    <div class="actions">
+      <button class="reanalyze" title="Re-analyze with AI">↻ AI</button>
+      <button class="edit" title="Edit">✎</button>
+      <button class="del" title="Delete">×</button>
+    </div>`;
+  row.querySelector(".toggle").addEventListener("click", () => toggleActiveRule(idx));
+  row.querySelector(".edit").addEventListener("click", () => editActiveRule(idx));
+  row.querySelector(".del").addEventListener("click", () => deleteActiveRule(idx));
+  row.querySelector(".reanalyze").addEventListener("click", () => reanalyzeRule(idx));
+  const mt = row.querySelector(".meta-toggle");
+  const mb = row.querySelector(".meta-block");
+  mt.addEventListener("click", () => {
+    const open = mb.classList.toggle("open");
+    mt.classList.toggle("open", open);
+  });
+  return row;
+}
+
+// =============================================================
+//  Grouping helpers — group key + per-group collapsed state, both
+//  persisted to localStorage so the user's choice survives reloads.
+// =============================================================
+const RULES_GROUP_KEY_LS = "rulesGroupBy";
+const RULES_GROUP_COLLAPSED_LS = "rulesGroupCollapsed";
+
+function getRulesGroupBy() {
+  return localStorage.getItem(RULES_GROUP_KEY_LS) || "category";
+}
+function setRulesGroupBy(v) {
+  localStorage.setItem(RULES_GROUP_KEY_LS, v);
+}
+
+let _rulesGroupCollapsed = (() => {
+  try { return new Set(JSON.parse(localStorage.getItem(RULES_GROUP_COLLAPSED_LS) || "[]")); }
+  catch (e) { return new Set(); }
+})();
+function _saveCollapsedSet() {
+  localStorage.setItem(RULES_GROUP_COLLAPSED_LS, JSON.stringify([..._rulesGroupCollapsed]));
+}
+function isGroupCollapsed(name) { return _rulesGroupCollapsed.has(name); }
+function setGroupCollapsed(name, collapsed) {
+  if (collapsed) _rulesGroupCollapsed.add(name);
+  else _rulesGroupCollapsed.delete(name);
+  _saveCollapsedSet();
+}
+
+// Custom orderings so groups appear in framework-aligned sequence,
+// not just alphabetical. Anything unknown falls to the end.
+const _ACTIVITY_ORDER_SLUGS = [
+  "authorization", "segregation_of_duties", "documents_records",
+  "safeguarding_assets", "independent_checks", "change_management",
+  "project_development",
+];
+const _FUNCTION_ORDER_SLUGS = ["preventive", "detective", "corrective"];
+
+function groupRulesByKey(rules, key) {
+  const groups = {};
+  const add = (name, item) => {
+    if (!groups[name]) groups[name] = [];
+    groups[name].push(item);
+  };
+  rules.forEach((rule, idx) => {
+    const item = { rule, idx };
+    const m = rule.metadata || {};
+    let name;
+    if (key === "control_activity") {
+      const slug = m.control_activity;
+      name = slug ? (ACTIVITY_LABELS[slug] || slug) : "(Unclassified activity)";
+    } else if (key === "control_function") {
+      const slug = m.control_function;
+      name = slug ? (FUNCTION_LABELS[slug] || slug) : "(Unclassified function)";
+    } else if (key === "category") {
+      name = m.category || "(No category)";
+    } else if (key === "source") {
+      const s = (rule.source || "manual").toLowerCase();
+      name = s.charAt(0).toUpperCase() + s.slice(1);
+    } else {
+      name = "All rules";
+    }
+    add(name, item);
+  });
+
+  // Build sort function
+  let orderMap = null;
+  if (key === "control_activity") {
+    orderMap = {};
+    _ACTIVITY_ORDER_SLUGS.forEach((slug, i) => { orderMap[ACTIVITY_LABELS[slug] || slug] = i; });
+  } else if (key === "control_function") {
+    orderMap = {};
+    _FUNCTION_ORDER_SLUGS.forEach((slug, i) => { orderMap[FUNCTION_LABELS[slug] || slug] = i; });
+  } else if (key === "source") {
+    orderMap = { Manual: 0, Wizard: 1, Treatment: 2 };
+  }
+
+  const keys = Object.keys(groups).sort((a, b) => {
+    // Unclassified / orphan buckets always last
+    const aOrphan = a.startsWith("(");
+    const bOrphan = b.startsWith("(");
+    if (aOrphan !== bOrphan) return aOrphan ? 1 : -1;
+    if (orderMap) {
+      const ai = orderMap[a] !== undefined ? orderMap[a] : 999;
+      const bi = orderMap[b] !== undefined ? orderMap[b] : 999;
+      if (ai !== bi) return ai - bi;
+    }
+    return a.localeCompare(b);
+  });
+  const sorted = {};
+  keys.forEach(k => { sorted[k] = groups[k]; });
+  return sorted;
+}
+
 function paintActiveRules() {
   const container = document.getElementById("rules-list-container");
   if (!container) return;
@@ -3453,43 +3653,56 @@ function paintActiveRules() {
     return;
   }
   container.innerHTML = "";
-  rules.forEach((rule, idx) => {
-    const row = document.createElement("div");
-    const enabled = rule.enabled !== false;
-    row.className = "rule-row " + (enabled ? "enabled" : "disabled");
-    row.dataset.idx = idx;
-    const date = rule.created_at ? new Date(rule.created_at * 1000).toLocaleDateString() : "";
-    const source = (rule.source || "manual").toLowerCase();
-    const author = rule.created_by ? " by " + escapeHtml(rule.created_by) : "";
-    const meta = rule.metadata || {};
-    const hasMeta = Object.keys(meta).filter(k => meta[k] !== null && meta[k] !== "" && (Array.isArray(meta[k]) ? meta[k].length : true)).length > 0;
-    row.innerHTML = `
-      <div class="toggle" title="${enabled ? 'Click to disable' : 'Click to enable'}"></div>
-      <div class="body">
-        <div class="text">${escapeHtml(rule.text || "")}</div>
-        <div class="meta">
-          <span class="source-tag ${source}">${escapeHtml(source)}</span>
-          ${date ? `Added ${date}${author}` : ""}
-        </div>
-        <button class="meta-toggle" type="button">Show structured metadata${hasMeta ? "" : " (none extracted yet)"}</button>
-        <div class="meta-block">${renderMetaBlock(meta)}</div>
-      </div>
-      <div class="actions">
-        <button class="reanalyze" title="Re-analyze with AI">↻ AI</button>
-        <button class="edit" title="Edit">✎</button>
-        <button class="del" title="Delete">×</button>
-      </div>`;
-    row.querySelector(".toggle").addEventListener("click", () => toggleActiveRule(idx));
-    row.querySelector(".edit").addEventListener("click", () => editActiveRule(idx));
-    row.querySelector(".del").addEventListener("click", () => deleteActiveRule(idx));
-    row.querySelector(".reanalyze").addEventListener("click", () => reanalyzeRule(idx));
-    const mt = row.querySelector(".meta-toggle");
-    const mb = row.querySelector(".meta-block");
-    mt.addEventListener("click", () => {
-      const open = mb.classList.toggle("open");
-      mt.classList.toggle("open", open);
-    });
-    container.appendChild(row);
+  const groupBy = getRulesGroupBy();
+  if (groupBy === "none") {
+    rules.forEach((rule, idx) => container.appendChild(buildRuleRow(rule, idx)));
+    return;
+  }
+  const groups = groupRulesByKey(rules, groupBy);
+  Object.entries(groups).forEach(([groupName, items]) => {
+    const details = document.createElement("details");
+    details.className = "rule-group";
+    details.open = !isGroupCollapsed(groupName);
+    details.addEventListener("toggle", () => setGroupCollapsed(groupName, !details.open));
+
+    const summary = document.createElement("summary");
+    summary.innerHTML = `<span class="group-label">${escapeHtml(groupName)}</span><span class="group-count">${items.length} rule${items.length === 1 ? "" : "s"}</span>`;
+    details.appendChild(summary);
+
+    const body = document.createElement("div");
+    body.className = "group-body";
+    items.forEach(({ rule, idx }) => body.appendChild(buildRuleRow(rule, idx)));
+    details.appendChild(body);
+
+    container.appendChild(details);
+  });
+}
+
+// Group-by selector + expand/collapse-all buttons
+const _groupBySel = document.getElementById("rules-group-by");
+if (_groupBySel) {
+  _groupBySel.value = getRulesGroupBy();
+  _groupBySel.addEventListener("change", () => {
+    setRulesGroupBy(_groupBySel.value);
+    paintActiveRules();
+  });
+}
+const _expandAllBtn = document.getElementById("rules-group-expand-all");
+if (_expandAllBtn) {
+  _expandAllBtn.addEventListener("click", () => {
+    _rulesGroupCollapsed.clear();
+    _saveCollapsedSet();
+    paintActiveRules();
+  });
+}
+const _collapseAllBtn = document.getElementById("rules-group-collapse-all");
+if (_collapseAllBtn) {
+  _collapseAllBtn.addEventListener("click", () => {
+    const rules = currentRules.active_rules || [];
+    const groups = groupRulesByKey(rules, getRulesGroupBy());
+    Object.keys(groups).forEach(name => _rulesGroupCollapsed.add(name));
+    _saveCollapsedSet();
+    paintActiveRules();
   });
 }
 
@@ -4221,7 +4434,14 @@ function paintRiskMatrix() {
     }
     host.innerHTML = list.map(({ r }) => {
       const declared = (r.metadata && r.metadata.risk_response) || "";
-      const mismatch = declared && declared !== recommended;
+      // Only flag MEANINGFUL mismatches. "Reduce" is the universal default
+      // (regex extractor falls back to it), so flagging "reduce" everywhere
+      // except High-Low is just noise. Flag when the declared response is
+      // accept/avoid/share AND disagrees with the quadrant's recommendation —
+      // those are deliberate choices the auditor made that diverge from theory.
+      const mismatch = declared &&
+                       declared !== "reduce" &&
+                       declared !== recommended;
       const klass = mismatch ? "rule-pip mismatch" : "rule-pip";
       const tag = mismatch ? `<span class="mismatch-tag" title="Declared response (${declared}) does not match the quadrant's recommendation (${recommended})">≠</span>` : "";
       return `<div class="${klass}" title="${escapeHtml(r.text || "")}">${escapeHtml(truncate(r.text || "", 110))}${tag}</div>`;
