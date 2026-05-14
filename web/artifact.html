@@ -521,6 +521,53 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
 /* When a rule-row is inside a group, drop its outer margin since the group has padding */
 .rule-group .group-body .rule-row { background: white; }
 
+/* ======== shared grouped-row layout for derived panels ======== */
+.grouped-panel-header {
+  display: grid; gap: 10px; align-items: center;
+  background: #f9fafb;
+  font-size: 11px; color: #4b5563;
+  text-transform: uppercase; letter-spacing: .04em;
+  padding: 8px 14px;
+  border: 1px solid #e5e7eb; border-radius: 6px;
+  margin-bottom: 8px;
+}
+.grouped-row {
+  display: grid; gap: 10px; align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid #f3f4f6;
+  background: white;
+}
+.grouped-row:last-child { border-bottom: 0; }
+.grouped-row input[type="number"] {
+  width: 100%; font: inherit; font-size: 13px;
+  padding: 5px 8px; border: 1px solid #d1d5db; border-radius: 4px;
+}
+.grouped-row .del {
+  background: transparent; border: 1px solid #d1d5db; border-radius: 4px;
+  cursor: pointer; padding: 4px 8px; color: #6b7280;
+  justify-self: end;
+}
+.grouped-row .del:hover { color: #b91c1c; border-color: #fca5a5; }
+.grouped-row .source-rule {
+  font-size: 11px; color: #6b7280; line-height: 1.4;
+  word-break: break-word;
+}
+.grouped-row .threshold {
+  font-variant-numeric: tabular-nums; color: #1f2937; font-size: 13px;
+}
+.grouped-row .role-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 600; background: #ede9fe; color: #5b21b6;
+}
+
+/* per-panel column templates */
+.caps-grid              { grid-template-columns: 110px 110px 1fr 36px; }
+.docreqs-grid           { grid-template-columns: 1fr 1fr; align-items: start; }
+.authmatrix-grid        { grid-template-columns: 1.2fr 90px 90px 1.6fr; }
+
+/* docreqs add-input stays a fixed pill width regardless of grouped-row rules */
+.grouped-row .doc-add-input { width: 140px; }
+
 /* ======== rule metadata (expandable per rule) ======== */
 .rule-row .meta-toggle {
   background: none; border: 0; cursor: pointer; color: #6b7280;
@@ -1233,32 +1280,42 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
         <div class="rules-panel full">
           <h3>Per-category dollar caps <span style="font-size:11px;color:#9ca3af;font-weight:normal">(derived from Active rules)</span></h3>
           <p class="desc">Soft cap = warning level (YELLOW territory). Hard cap = should require explicit pre-approval (RED if absent). <b>Editing a row rewrites the underlying rule</b> in the Active rules panel above - it's a single source of truth.</p>
-          <table class="caps-table">
-            <thead><tr><th>Category</th><th>Soft cap ($)</th><th>Hard cap ($)</th><th>Source rule</th><th></th></tr></thead>
-            <tbody id="r-caps"></tbody>
-          </table>
+          <div class="grouped-panel-header caps-grid">
+            <div>Soft cap ($)</div>
+            <div>Hard cap ($)</div>
+            <div>Source rule</div>
+            <div></div>
+          </div>
+          <div id="r-caps"></div>
           <button class="btn small ghost" id="r-add-cap" style="margin-top:10px">+ Add category cap</button>
-          <p class="derived-note">Adding a cap here creates a new Active rule. Removing a row deletes the corresponding rule.</p>
+          <p class="derived-note">Grouped by category. Click a category header to collapse / expand. Adding a cap creates a new Active rule; removing a row deletes the corresponding rule.</p>
         </div>
 
         <div class="rules-panel full">
           <h3>Authorization matrix <span style="font-size:11px;color:#9ca3af;font-weight:normal">(derived from Active rules &middot; "Proper authorization of transactions and activities")</span></h3>
           <p class="desc">Who in the organization can approve what, by category and dollar threshold. This is one of the seven Physical Control Activities (COSO 2013).</p>
-          <table class="auth-matrix">
-            <thead><tr><th>Authorizer</th><th>Category</th><th style="text-align:right">Soft cap</th><th style="text-align:right">Hard cap</th><th>Source rule</th></tr></thead>
-            <tbody id="r-auth-matrix"></tbody>
-          </table>
-          <p class="derived-note">This view is read-only - to change who authorizes what, edit the underlying rule above (or the Per-category caps row).</p>
+          <div class="rules-group-bar">
+            <label for="r-auth-group-by">Group by:</label>
+            <select id="r-auth-group-by">
+              <option value="authorizer">Authorizer</option>
+              <option value="category">Category</option>
+            </select>
+            <span class="group-hint">Click a group header to collapse / expand</span>
+          </div>
+          <div class="grouped-panel-header authmatrix-grid" id="r-auth-header"></div>
+          <div id="r-auth-matrix"></div>
+          <p class="derived-note">This view is read-only - to change who authorizes what, edit the underlying rule (or the Per-category caps row above).</p>
         </div>
 
         <div class="rules-panel full">
           <h3>Documentation requirements <span style="font-size:11px;color:#9ca3af;font-weight:normal">(derived from Active rules &middot; "Design and use of documents and records")</span></h3>
           <p class="desc">What documents must accompany each rule. Click &times; on a chip to remove a required doc; type in the input + press Enter to add one. Edits here update the underlying rule's metadata.</p>
-          <table class="caps-table doc-reqs-table">
-            <thead><tr><th style="width:160px">Category</th><th>Required documents</th><th style="width:280px">Source rule</th></tr></thead>
-            <tbody id="r-doc-reqs"></tbody>
-          </table>
-          <p class="derived-note">Common doc types: receipt, PO, invoice, contract, training plan, Concur entry, campaign plan reference. Rules without a category appear as "(any category)".</p>
+          <div class="grouped-panel-header docreqs-grid">
+            <div>Required documents</div>
+            <div>Source rule</div>
+          </div>
+          <div id="r-doc-reqs"></div>
+          <p class="derived-note">Grouped by category, default expanded. Common doc types: receipt, PO, invoice, contract, training plan, Concur entry, campaign plan reference.</p>
         </div>
 
         <div class="rules-panel full">
@@ -4099,11 +4156,30 @@ if (_origRwAccept) {
   });
 }
 
+// =============================================================
+//  Shared collapsed-state tracking for the derived panels. In-memory
+//  only (not localStorage) — these panels default to EXPANDED, so a
+//  reload always shows everything open. User collapses persist within
+//  the session across repaints, then reset on next page load.
+// =============================================================
+const _panelClosedSets = {
+  caps: new Set(),
+  docreqs: new Set(),
+  authmatrix: new Set(),
+};
+function isPanelGroupClosed(panel, name) {
+  return _panelClosedSets[panel] && _panelClosedSets[panel].has(name);
+}
+function setPanelGroupClosed(panel, name, closed) {
+  if (!_panelClosedSets[panel]) _panelClosedSets[panel] = new Set();
+  if (closed) _panelClosedSets[panel].add(name);
+  else _panelClosedSets[panel].delete(name);
+}
+
 // Per-category dollar caps - DERIVED VIEW from active_rules' metadata.
-// Each row corresponds to one rule (the rule with category + threshold metadata).
-// Editing a row writes back to that rule's metadata AND regenerates its text.
+// Grouped by category, default-open <details> sections.
 function paintCapsTable() {
-  const tb = $("#r-caps");
+  const tb = document.getElementById("r-caps");
   if (!tb) return;
   tb.innerHTML = "";
   const rules = currentRules.active_rules || [];
@@ -4115,36 +4191,62 @@ function paintCapsTable() {
       return m.category && (m.soft_threshold_usd || m.hard_threshold_usd);
     });
   if (!capRules.length) {
-    tb.innerHTML = `<tr><td colspan="5" style="padding:14px;text-align:center;color:#9ca3af">No category caps yet. Add a rule like "Travel above $1,500 requires director sign-off" in the Active rules panel above and it will appear here automatically. (Disabled rules are excluded.)</td></tr>`;
+    tb.innerHTML = `<div style="padding:14px;text-align:center;color:#9ca3af">No category caps yet. Add a rule like "Travel above $1,500 requires director sign-off" in the Active rules panel above and it will appear here automatically. (Disabled rules are excluded.)</div>`;
     return;
   }
-  capRules.forEach(({ r, ruleIdx }) => {
-    const m = r.metadata || {};
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td><input data-rule-idx="${ruleIdx}" data-meta-key="category" value="${escapeHtml(m.category || "")}" /></td>
-      <td><input data-rule-idx="${ruleIdx}" data-meta-key="soft_threshold_usd" type="number" min="0" value="${m.soft_threshold_usd ?? 0}" /></td>
-      <td><input data-rule-idx="${ruleIdx}" data-meta-key="hard_threshold_usd" type="number" min="0" value="${m.hard_threshold_usd ?? 0}" /></td>
-      <td class="source-rule" style="font-size:11px;color:#6b7280;max-width:280px">${escapeHtml(r.text || "")}</td>
-      <td><button class="del" data-del-rule="${ruleIdx}" title="Delete the underlying rule">&times;</button></td>`;
-    tb.appendChild(tr);
+  // Group by category
+  const groups = {};
+  capRules.forEach(item => {
+    const cat = (item.r.metadata && item.r.metadata.category) || "(No category)";
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(item);
   });
-  tb.querySelectorAll("input").forEach(inp => {
+  const sortedNames = Object.keys(groups).sort((a, b) => {
+    const ao = a.startsWith("("), bo = b.startsWith("(");
+    if (ao !== bo) return ao ? 1 : -1;
+    return a.localeCompare(b);
+  });
+
+  sortedNames.forEach(catName => {
+    const items = groups[catName];
+    const details = document.createElement("details");
+    details.className = "rule-group";
+    details.open = !isPanelGroupClosed("caps", catName);
+    details.addEventListener("toggle", () => setPanelGroupClosed("caps", catName, !details.open));
+    const summary = document.createElement("summary");
+    summary.innerHTML = `<span class="group-label">${escapeHtml(catName)}</span><span class="group-count">${items.length} rule${items.length === 1 ? "" : "s"}</span>`;
+    details.appendChild(summary);
+    const body = document.createElement("div");
+    body.className = "group-body";
+    items.forEach(({ r, ruleIdx }) => {
+      const m = r.metadata || {};
+      const row = document.createElement("div");
+      row.className = "grouped-row caps-grid";
+      row.innerHTML = `
+        <input data-rule-idx="${ruleIdx}" data-meta-key="soft_threshold_usd" type="number" min="0" value="${m.soft_threshold_usd ?? 0}" />
+        <input data-rule-idx="${ruleIdx}" data-meta-key="hard_threshold_usd" type="number" min="0" value="${m.hard_threshold_usd ?? 0}" />
+        <div class="source-rule">${escapeHtml(r.text || "")}</div>
+        <button class="del" data-del-rule="${ruleIdx}" title="Delete the underlying rule">&times;</button>`;
+      body.appendChild(row);
+    });
+    details.appendChild(body);
+    tb.appendChild(details);
+  });
+
+  // Wire input/delete handlers
+  tb.querySelectorAll("input[type='number']").forEach(inp => {
     inp.addEventListener("input", () => {
       const ruleIdx = +inp.dataset.ruleIdx;
       const key = inp.dataset.metaKey;
       const rule = currentRules.active_rules[ruleIdx];
       if (!rule) return;
       rule.metadata = rule.metadata || {};
-      rule.metadata[key] = key === "category" ? inp.value : (+inp.value || 0);
-      // Regenerate the text from the new metadata so they stay in sync
+      rule.metadata[key] = (+inp.value || 0);
       rule.text = jsRegenerateRuleText(rule.metadata, rule.text);
-      // Update the source-rule cell live without full repaint (preserves caret in input)
-      const tr = inp.closest("tr");
-      const srcCell = tr && tr.querySelector(".source-rule");
+      const row = inp.closest(".grouped-row");
+      const srcCell = row && row.querySelector(".source-rule");
       if (srcCell) srcCell.textContent = rule.text;
       markRulesDirty();
-      // Defer the full repaint of derived panels to avoid disrupting user input
     });
     inp.addEventListener("change", () => {
       paintActiveRules();
@@ -4180,62 +4282,136 @@ function jsRegenerateRuleText(meta, fallback) {
   return fallback || "";
 }
 
-// Authorization Matrix - DERIVED from rules' metadata. Read-only for now.
+// Authorization Matrix - DERIVED from rules' metadata. Read-only.
+// User can group by Authorizer (default) or Category via a dropdown.
+function getAuthMatrixGroupBy() {
+  return localStorage.getItem("authMatrixGroupBy") || "authorizer";
+}
+function setAuthMatrixGroupByPref(v) {
+  localStorage.setItem("authMatrixGroupBy", v);
+}
+const _AUTH_RANK = {
+  Manager: 1, Supervisor: 1, Controller: 2, Director: 3,
+  VP: 4, COO: 5, CTO: 5, CFO: 6, CEO: 7,
+};
+
 function paintAuthMatrix() {
   const tb = document.getElementById("r-auth-matrix");
+  const headerEl = document.getElementById("r-auth-header");
   if (!tb) return;
   tb.innerHTML = "";
+  const groupBy = getAuthMatrixGroupBy();
+
+  // Set static column-header row based on group-by mode
+  if (headerEl) {
+    if (groupBy === "authorizer") {
+      headerEl.innerHTML = `<div>Category</div><div style="text-align:right">Soft cap</div><div style="text-align:right">Hard cap</div><div>Source rule</div>`;
+    } else {
+      headerEl.innerHTML = `<div>Authorizer</div><div style="text-align:right">Soft cap</div><div style="text-align:right">Hard cap</div><div>Source rule</div>`;
+    }
+  }
+
+  // Build pivoted entries: one per (role, category) with both soft + hard caps merged
   const rules = currentRules.active_rules || [];
-  const rows = [];
+  const pivot = {};
   rules.forEach(r => {
     if (r.enabled === false) return;
     const m = r.metadata || {};
     if (!m.authorizer && !m.hard_authorizer) return;
+    const cat = m.category || "(any)";
     if (m.authorizer && m.soft_threshold_usd) {
-      rows.push({ role: m.authorizer, category: m.category || "(any)",
-                  threshold: m.soft_threshold_usd, kind: "soft", text: r.text });
+      const key = m.authorizer + "||" + cat;
+      pivot[key] = pivot[key] || { role: m.authorizer, category: cat, soft: null, hard: null, text: r.text };
+      pivot[key].soft = m.soft_threshold_usd;
+      pivot[key].text = r.text;
     }
     if (m.hard_authorizer && m.hard_threshold_usd) {
-      rows.push({ role: m.hard_authorizer, category: m.category || "(any)",
-                  threshold: m.hard_threshold_usd, kind: "hard", text: r.text });
+      const key = m.hard_authorizer + "||" + cat;
+      pivot[key] = pivot[key] || { role: m.hard_authorizer, category: cat, soft: null, hard: null, text: r.text };
+      pivot[key].hard = m.hard_threshold_usd;
+      pivot[key].text = r.text;
     }
   });
-  if (!rows.length) {
-    tb.innerHTML = `<tr><td colspan="5" style="padding:14px;text-align:center;color:#9ca3af">No authorization rules yet. Add a rule mentioning a role and a threshold (e.g. "Travel above $1,500 requires Director sign-off") to populate this matrix.</td></tr>`;
+  const entries = Object.values(pivot);
+  if (!entries.length) {
+    tb.innerHTML = `<div style="padding:14px;text-align:center;color:#9ca3af">No authorization rules yet. Add a rule mentioning a role and a threshold (e.g. "Travel above $1,500 requires Director sign-off") to populate this matrix. (Disabled rules are excluded.)</div>`;
     return;
   }
-  // Group by role for cleaner display
-  rows.sort((a, b) => {
-    if (a.role !== b.role) return a.role.localeCompare(b.role);
-    if (a.category !== b.category) return a.category.localeCompare(b.category);
-    return b.threshold - a.threshold;
+
+  // Bucket by the chosen group-by dimension
+  const groups = {};
+  entries.forEach(e => {
+    const groupName = (groupBy === "authorizer") ? e.role : e.category;
+    if (!groups[groupName]) groups[groupName] = [];
+    groups[groupName].push(e);
   });
-  // Pivot: per (role, category), show min and max thresholds in one row
-  const pivot = {};
-  rows.forEach(x => {
-    const key = x.role + "||" + x.category;
-    pivot[key] = pivot[key] || { role: x.role, category: x.category, soft: null, hard: null, text: x.text };
-    if (x.kind === "soft") pivot[key].soft = x.threshold;
-    if (x.kind === "hard") pivot[key].hard = x.threshold;
+  const sortedNames = Object.keys(groups).sort((a, b) => {
+    const ao = a.startsWith("("), bo = b.startsWith("(");
+    if (ao !== bo) return ao ? 1 : -1;
+    if (groupBy === "authorizer") {
+      const ar = _AUTH_RANK[a] || 99;
+      const br = _AUTH_RANK[b] || 99;
+      if (ar !== br) return ar - br;
+    }
+    return a.localeCompare(b);
   });
-  Object.values(pivot).forEach(p => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td><span class="role-badge">${escapeHtml(p.role)}</span></td>
-      <td>${escapeHtml(p.category)}</td>
-      <td class="threshold" style="text-align:right">${p.soft ? "$" + p.soft.toLocaleString() : "—"}</td>
-      <td class="threshold" style="text-align:right">${p.hard ? "$" + p.hard.toLocaleString() : "—"}</td>
-      <td class="source-rule">${escapeHtml(p.text || "")}</td>`;
-    tb.appendChild(tr);
+
+  sortedNames.forEach(name => {
+    const items = groups[name];
+    // Sort items inside the group by the OTHER dimension for consistency
+    items.sort((x, y) => {
+      const xKey = (groupBy === "authorizer") ? x.category : x.role;
+      const yKey = (groupBy === "authorizer") ? y.category : y.role;
+      return xKey.localeCompare(yKey);
+    });
+    const details = document.createElement("details");
+    details.className = "rule-group";
+    // Namespace the closed-state key by group-by mode so toggling
+    // doesn't carry over collapses when switching dropdown.
+    const stateKey = groupBy + ":" + name;
+    details.open = !isPanelGroupClosed("authmatrix", stateKey);
+    details.addEventListener("toggle", () => setPanelGroupClosed("authmatrix", stateKey, !details.open));
+    const summary = document.createElement("summary");
+    const label = (groupBy === "authorizer")
+      ? `<span class="role-badge">${escapeHtml(name)}</span>`
+      : `<span class="group-label">${escapeHtml(name)}</span>`;
+    summary.innerHTML = `${label}<span class="group-count">${items.length} rule${items.length === 1 ? "" : "s"}</span>`;
+    details.appendChild(summary);
+    const body = document.createElement("div");
+    body.className = "group-body";
+    items.forEach(p => {
+      const row = document.createElement("div");
+      row.className = "grouped-row authmatrix-grid";
+      const firstCol = (groupBy === "authorizer")
+        ? `<div>${escapeHtml(p.category)}</div>`
+        : `<div><span class="role-badge">${escapeHtml(p.role)}</span></div>`;
+      row.innerHTML = `
+        ${firstCol}
+        <div class="threshold" style="text-align:right">${p.soft ? "$" + p.soft.toLocaleString() : "—"}</div>
+        <div class="threshold" style="text-align:right">${p.hard ? "$" + p.hard.toLocaleString() : "—"}</div>
+        <div class="source-rule">${escapeHtml(p.text || "")}</div>`;
+      body.appendChild(row);
+    });
+    details.appendChild(body);
+    tb.appendChild(details);
+  });
+}
+
+// Group-by dropdown listener
+const _authGroupBySel = document.getElementById("r-auth-group-by");
+if (_authGroupBySel) {
+  _authGroupBySel.value = getAuthMatrixGroupBy();
+  _authGroupBySel.addEventListener("change", () => {
+    setAuthMatrixGroupByPref(_authGroupBySel.value);
+    paintAuthMatrix();
   });
 }
 
 // =============================================================
 //  Documentation Requirements — DERIVED, bidirectional.
-//  Shows one row per rule that either lists required docs or is tagged
-//  as the documents_records control activity. Chip × removes a doc;
-//  the small input + Enter adds one. All edits sync back to the rule's
-//  metadata AND regenerate its text deterministically.
+//  Grouped by category (default expanded). One row per rule that
+//  either lists required docs or is tagged as the documents_records
+//  control activity. Chip × removes a doc; input + Enter adds one.
 // =============================================================
 function paintDocReqs() {
   const tb = document.getElementById("r-doc-reqs");
@@ -4252,26 +4428,53 @@ function paintDocReqs() {
       return hasDocs || isDocsActivity;
     });
   if (!rows.length) {
-    tb.innerHTML = `<tr><td colspan="3" style="padding:14px;text-align:center;color:#9ca3af">No documentation rules yet. Add a rule like "Equipment purchases above $1,000 require an attached invoice in Concur" and it will appear here automatically.</td></tr>`;
+    tb.innerHTML = `<div style="padding:14px;text-align:center;color:#9ca3af">No documentation rules yet. Add a rule like "Equipment purchases above $1,000 require an attached invoice in Concur" and it will appear here automatically.</div>`;
     return;
   }
-  rows.forEach(({ r, ruleIdx }) => {
-    const m = r.metadata || {};
-    const docs = Array.isArray(m.required_docs) ? m.required_docs : [];
-    const cat = m.category || "<i style='color:#9ca3af'>(any category)</i>";
-    const chips = docs.map((d, di) =>
-      `<span class="doc-chip">${escapeHtml(d)}<button class="chip-x" data-rule-idx="${ruleIdx}" data-doc-idx="${di}" title="Remove">&times;</button></span>`
-    ).join("");
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${cat}</td>
-      <td>
-        <div data-chip-cell="${ruleIdx}">${chips || '<span style="font-size:11px;color:#9ca3af;font-style:italic">no documents listed</span>'}</div>
-        <input class="doc-add-input" type="text" placeholder="+ add doc (Enter)" data-rule-idx="${ruleIdx}" />
-      </td>
-      <td class="source-rule">${escapeHtml(r.text || "")}</td>`;
-    tb.appendChild(tr);
+  // Group by category
+  const groups = {};
+  rows.forEach(item => {
+    const cat = (item.r.metadata && item.r.metadata.category) || "(Any category)";
+    if (!groups[cat]) groups[cat] = [];
+    groups[cat].push(item);
   });
+  const sortedNames = Object.keys(groups).sort((a, b) => {
+    const ao = a.startsWith("("), bo = b.startsWith("(");
+    if (ao !== bo) return ao ? 1 : -1;
+    return a.localeCompare(b);
+  });
+
+  sortedNames.forEach(catName => {
+    const items = groups[catName];
+    const details = document.createElement("details");
+    details.className = "rule-group";
+    details.open = !isPanelGroupClosed("docreqs", catName);
+    details.addEventListener("toggle", () => setPanelGroupClosed("docreqs", catName, !details.open));
+    const summary = document.createElement("summary");
+    summary.innerHTML = `<span class="group-label">${escapeHtml(catName)}</span><span class="group-count">${items.length} rule${items.length === 1 ? "" : "s"}</span>`;
+    details.appendChild(summary);
+    const body = document.createElement("div");
+    body.className = "group-body";
+    items.forEach(({ r, ruleIdx }) => {
+      const m = r.metadata || {};
+      const docs = Array.isArray(m.required_docs) ? m.required_docs : [];
+      const chips = docs.map((d, di) =>
+        `<span class="doc-chip">${escapeHtml(d)}<button class="chip-x" data-rule-idx="${ruleIdx}" data-doc-idx="${di}" title="Remove">&times;</button></span>`
+      ).join("");
+      const row = document.createElement("div");
+      row.className = "grouped-row docreqs-grid";
+      row.innerHTML = `
+        <div>
+          <div data-chip-cell="${ruleIdx}">${chips || '<span style="font-size:11px;color:#9ca3af;font-style:italic">no documents listed</span>'}</div>
+          <input class="doc-add-input" type="text" placeholder="+ add doc (Enter)" data-rule-idx="${ruleIdx}" />
+        </div>
+        <div class="source-rule">${escapeHtml(r.text || "")}</div>`;
+      body.appendChild(row);
+    });
+    details.appendChild(body);
+    tb.appendChild(details);
+  });
+
   tb.querySelectorAll(".chip-x").forEach(btn => {
     btn.addEventListener("click", () => {
       const ruleIdx = +btn.dataset.ruleIdx;
