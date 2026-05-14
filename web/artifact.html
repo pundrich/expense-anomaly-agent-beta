@@ -1131,6 +1131,9 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
               <button class="btn small ghost" id="rules-load-pack" type="button" style="white-space:nowrap" title="Add a curated set of example rules covering authorization, documents, segregation of duties, and detective controls">
                 + Load example pack
               </button>
+              <button class="btn small ghost" id="rules-enrich-all" type="button" style="white-space:nowrap" title="Run AI metadata extraction on every rule that's missing likelihood, impact, function, activity, or response">
+                ↻ Fill missing fields with AI
+              </button>
               <button class="btn small ghost" id="rules-add-btn" type="button" style="white-space:nowrap">
                 + Add rule manually
               </button>
@@ -3800,6 +3803,61 @@ if (_rulesLoadPackBtn) {
     if (enrichedCount) resultMsg += `enriched ${enrichedCount}`;
     resultMsg += ". Click Save to persist.";
     toast(resultMsg);
+  });
+}
+
+// Bulk "Fill missing fields with AI" — runs the metadata extraction endpoint
+// on every rule that's missing one of the demo-critical fields (likelihood,
+// impact, control_function, control_activity, risk_response). Calls the API
+// directly (no toast-spam from reanalyzeRule) and repaints once at the end.
+const _rulesEnrichAllBtn = document.getElementById("rules-enrich-all");
+if (_rulesEnrichAllBtn) {
+  _rulesEnrichAllBtn.addEventListener("click", async () => {
+    const critical = ["likelihood", "impact", "control_function", "control_activity", "risk_response"];
+    const rules = currentRules.active_rules || [];
+    const candidates = rules.map((r, idx) => ({ r, idx })).filter(({ r }) => {
+      const m = r.metadata || {};
+      return critical.some(k => !m[k]);
+    });
+    if (!candidates.length) {
+      toast("All rules already have the demo-critical metadata fields filled.");
+      return;
+    }
+    if (!confirm(`Run AI metadata extraction on ${candidates.length} rule${candidates.length === 1 ? "" : "s"} with missing fields?\n\nThis takes about 1-2 seconds per rule. Rules with complete metadata are skipped.`)) return;
+
+    _rulesEnrichAllBtn.disabled = true;
+    const originalLabel = _rulesEnrichAllBtn.textContent;
+    let done = 0, failed = 0;
+    try {
+      for (const { r } of candidates) {
+        _rulesEnrichAllBtn.textContent = `Enriching ${done + failed + 1} / ${candidates.length}...`;
+        try {
+          const resp = await authFetch("/api/rules/extract-metadata", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ text: r.text }),
+          });
+          const j = await resp.json();
+          if (!resp.ok) throw new Error(j.error || ("HTTP " + resp.status));
+          r.metadata = { ...(r.metadata || {}), ...(j.metadata || {}) };
+          done++;
+        } catch (e) {
+          failed++;
+        }
+        // Incremental repaint every 3 rules so the user sees progress in the panels
+        if ((done + failed) % 3 === 0) {
+          paintActiveRules();
+          paintDerivedPanels();
+        }
+      }
+    } finally {
+      _rulesEnrichAllBtn.disabled = false;
+      _rulesEnrichAllBtn.textContent = originalLabel;
+    }
+    paintActiveRules();
+    paintDerivedPanels();
+    markRulesDirty();
+    toast(`Enriched ${done} rule${done === 1 ? "" : "s"}${failed ? `, ${failed} failed` : ""}. Click Save to persist.`);
   });
 }
 
