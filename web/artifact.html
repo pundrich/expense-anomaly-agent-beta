@@ -3605,7 +3605,7 @@ if (_rulesAddSave) {
     if (e.key === "Escape") { e.preventDefault(); _rulesAddCancel.click(); }
   });
 }
-function commitNewRule() {
+async function commitNewRule() {
   const input = document.getElementById("rules-add-input");
   const text = input.value.trim();
   if (!text) return;
@@ -3618,71 +3618,166 @@ function commitNewRule() {
     created_by: (currentUser && currentUser.username) || "?",
     enabled: true,
   });
+  const newIdx = currentRules.active_rules.length - 1;
   input.value = "";
   document.getElementById("rules-add-row").style.display = "none";
   paintActiveRules();
   paintDerivedPanels();
   markRulesDirty();
-  toast("Rule added — remember to click Save to persist.");
+  // Auto-run AI metadata extraction so the user doesn't have to click the ↻ AI button.
+  // reanalyzeRule() emits its own toasts (Analyzing... / Metadata refreshed.) and
+  // tolerates network failures — the rule is still added either way.
+  await reanalyzeRule(newIdx);
 }
 
 // "Load example pack" button - adds a curated set of rules covering all 7
 // Physical Control Activities (slide 10-32), so the auditor sees a meaningful
-// starting state instead of an empty panel.
+// starting state instead of an empty panel. Likelihood/impact metadata is
+// included on every rule so the Risk Response Matrix populates richly.
 const EXAMPLE_RULE_PACK = [
-  // Authorization
+  // === Authorization (preventive) — sized by typical dollar exposure ===
   { text: "Travel above $1,500 requires Director sign-off; above $5,000 requires CFO sign-off.",
-    metadata: { category: "Travel", soft_threshold_usd: 1500, hard_threshold_usd: 5000, authorizer: "Director", hard_authorizer: "CFO", control_function: "preventive", control_activity: "authorization", risk_response: "reduce" } },
+    metadata: { category: "Travel", soft_threshold_usd: 1500, hard_threshold_usd: 5000, authorizer: "Director", hard_authorizer: "CFO", control_function: "preventive", control_activity: "authorization", risk_response: "reduce", likelihood: "medium", impact: "high" } },
   { text: "Marketing above $3,000 requires Director sign-off; above $10,000 requires CFO sign-off.",
-    metadata: { category: "Marketing", soft_threshold_usd: 3000, hard_threshold_usd: 10000, authorizer: "Director", hard_authorizer: "CFO", control_function: "preventive", control_activity: "authorization", risk_response: "reduce" } },
+    metadata: { category: "Marketing", soft_threshold_usd: 3000, hard_threshold_usd: 10000, authorizer: "Director", hard_authorizer: "CFO", control_function: "preventive", control_activity: "authorization", risk_response: "reduce", likelihood: "medium", impact: "high" } },
   { text: "Consulting engagements above $8,000 require Director approval; above $25,000 require CFO and Board ratification.",
-    metadata: { category: "Consulting", soft_threshold_usd: 8000, hard_threshold_usd: 25000, authorizer: "Director", hard_authorizer: "CFO", control_function: "preventive", control_activity: "authorization", risk_response: "reduce" } },
-  // Documents & records
+    metadata: { category: "Consulting", soft_threshold_usd: 8000, hard_threshold_usd: 25000, authorizer: "Director", hard_authorizer: "CFO", control_function: "preventive", control_activity: "authorization", risk_response: "reduce", likelihood: "medium", impact: "high" } },
+  { text: "Office Supplies above $250 require Manager approval; above $1,500 require Director approval.",
+    metadata: { category: "Office Supplies", soft_threshold_usd: 250, hard_threshold_usd: 1500, authorizer: "Manager", hard_authorizer: "Director", control_function: "preventive", control_activity: "authorization", risk_response: "reduce", likelihood: "high", impact: "medium" } },
+  { text: "Software/SaaS subscriptions above $500/month require IT Director approval; annual contracts above $10,000 require CFO approval.",
+    metadata: { category: "Software/SaaS", soft_threshold_usd: 500, hard_threshold_usd: 10000, authorizer: "Director", hard_authorizer: "CFO", control_function: "preventive", control_activity: "authorization", risk_response: "reduce", likelihood: "medium", impact: "high" } },
+  { text: "Equipment purchases above $1,000 require Manager approval; above $10,000 require CFO approval.",
+    metadata: { category: "Equipment", soft_threshold_usd: 1000, hard_threshold_usd: 10000, authorizer: "Manager", hard_authorizer: "CFO", control_function: "preventive", control_activity: "authorization", risk_response: "reduce", likelihood: "medium", impact: "high" } },
+  { text: "Petty cash advances above $50 require Manager approval; above $500 require Controller approval and a written justification.",
+    metadata: { category: "Petty Cash", soft_threshold_usd: 50, hard_threshold_usd: 500, authorizer: "Manager", hard_authorizer: "Controller", control_function: "preventive", control_activity: "authorization", risk_response: "reduce", likelihood: "high", impact: "low" } },
+
+  // === Documents & records (preventive) ===
   { text: "Conference and training expenses must reference an approved training plan or PO number; otherwise YELLOW.",
-    metadata: { category: "Travel", required_docs: ["training plan", "PO"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce" } },
+    metadata: { category: "Travel", required_docs: ["training plan", "PO"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce", likelihood: "high", impact: "medium" } },
   { text: "Equipment purchases above $1,000 require an attached invoice in Concur and a fixed-asset tag within 30 days.",
-    metadata: { category: "Equipment", soft_threshold_usd: 1000, required_docs: ["invoice", "Concur entry"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce" } },
+    metadata: { category: "Equipment", soft_threshold_usd: 1000, required_docs: ["invoice", "Concur entry"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce", likelihood: "high", impact: "medium" } },
   { text: "Consulting engagements must attach the signed contract or statement of work before invoicing.",
-    metadata: { category: "Consulting", required_docs: ["contract"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce" } },
-  // Segregation of duties
+    metadata: { category: "Consulting", required_docs: ["contract"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce", likelihood: "high", impact: "medium" } },
+  { text: "Travel expenses above $75 (lodging, airfare, ground transport) require an itemized receipt; group meals require an attendee list.",
+    metadata: { category: "Travel", soft_threshold_usd: 75, required_docs: ["receipt", "attendee list"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce", likelihood: "high", impact: "medium" } },
+  { text: "Office Supplies above $250 must have an itemized receipt or invoice listing each item ordered.",
+    metadata: { category: "Office Supplies", soft_threshold_usd: 250, required_docs: ["receipt", "invoice"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce", likelihood: "high", impact: "low" } },
+  { text: "Software/SaaS purchases must document the vendor Terms of Service and the renewal/cancellation terms before procurement.",
+    metadata: { category: "Software/SaaS", required_docs: ["vendor T&Cs", "renewal terms"], control_function: "preventive", control_activity: "documents_records", risk_response: "reduce", likelihood: "medium", impact: "medium" } },
+
+  // === Segregation of duties (preventive) ===
   { text: "The same person cannot both submit and approve an expense above $1,000.",
-    metadata: { soft_threshold_usd: 1000, control_function: "preventive", control_activity: "segregation_of_duties", risk_response: "reduce" } },
+    metadata: { soft_threshold_usd: 1000, control_function: "preventive", control_activity: "segregation_of_duties", risk_response: "reduce", likelihood: "low", impact: "high" } },
   { text: "Marketing managers cannot approve their own department's media buys; approval routes to Finance.",
-    metadata: { category: "Marketing", control_function: "preventive", control_activity: "segregation_of_duties", risk_response: "reduce" } },
-  // Safeguarding assets
+    metadata: { category: "Marketing", control_function: "preventive", control_activity: "segregation_of_duties", risk_response: "avoid", likelihood: "low", impact: "high" } },
+  { text: "Vendor master data changes (new vendor, banking details) require dual approval — one signature from Finance and one from Procurement.",
+    metadata: { control_function: "preventive", control_activity: "segregation_of_duties", risk_response: "reduce", likelihood: "low", impact: "high" } },
+  { text: "Accounts-payable reconciliations must be performed by someone outside the purchasing and vendor-onboarding teams.",
+    metadata: { control_function: "preventive", control_activity: "segregation_of_duties", risk_response: "reduce", likelihood: "low", impact: "high" } },
+
+  // === Safeguarding assets (preventive) ===
   { text: "All Equipment must be tagged with a fixed-asset ID within 30 days of acquisition; missing tags trigger RED.",
-    metadata: { category: "Equipment", control_function: "preventive", control_activity: "safeguarding_assets", risk_response: "reduce" } },
-  // Independent checks (detective)
+    metadata: { category: "Equipment", control_function: "preventive", control_activity: "safeguarding_assets", risk_response: "reduce", likelihood: "medium", impact: "medium" } },
+  { text: "Laptops and other portable electronics must be enrolled in IT asset management within 7 days of receipt.",
+    metadata: { category: "Equipment", required_docs: ["IT asset registration"], control_function: "preventive", control_activity: "safeguarding_assets", risk_response: "reduce", likelihood: "medium", impact: "medium" } },
+  { text: "Petty cash boxes must be physically counted monthly by someone other than the custodian; variances over $25 escalate to the Controller.",
+    metadata: { category: "Petty Cash", control_function: "detective", control_activity: "safeguarding_assets", risk_response: "reduce", likelihood: "medium", impact: "low" } },
+  { text: "Laptops and electronics above $1,500 must be covered by the corporate property insurance policy.",
+    metadata: { category: "Equipment", soft_threshold_usd: 1500, control_function: "preventive", control_activity: "safeguarding_assets", risk_response: "share", likelihood: "low", impact: "medium" } },
+
+  // === Independent checks (detective) ===
   { text: "Monthly reconciliation of Travel category spend against approved trip plans by the audit committee.",
-    metadata: { category: "Travel", control_function: "detective", control_activity: "independent_checks", risk_response: "reduce" } },
+    metadata: { category: "Travel", control_function: "detective", control_activity: "independent_checks", risk_response: "reduce", likelihood: "high", impact: "medium" } },
   { text: "Quarterly review of all RED-flagged transactions and audit overrides by the audit committee.",
-    metadata: { control_function: "detective", control_activity: "independent_checks", risk_response: "reduce" } },
-  // Vendor / category integrity
-  { text: "Office Supplies vendors (Staples, Amazon Business, Quill) cannot be charged as Marketing campaigns - flag RED.",
-    metadata: { category: "Office Supplies", control_function: "preventive", control_activity: "documents_records", risk_response: "reduce" } },
+    metadata: { control_function: "detective", control_activity: "independent_checks", risk_response: "reduce", likelihood: "high", impact: "medium" } },
+  { text: "Annual audit of the vendor master file (new additions, banking changes, dormant accounts) by an independent reviewer.",
+    metadata: { control_function: "detective", control_activity: "independent_checks", risk_response: "reduce", likelihood: "medium", impact: "high" } },
+  { text: "Monthly review of all non-routine journal entries above $5,000 by the Controller before posting.",
+    metadata: { soft_threshold_usd: 5000, authorizer: "Controller", control_function: "detective", control_activity: "independent_checks", risk_response: "reduce", likelihood: "medium", impact: "high" } },
+
+  // === Change management (preventive) ===
+  { text: "ERP configuration changes affecting GL accounts, approval workflows, or roles require Change Control Board approval and a documented test plan.",
+    metadata: { required_docs: ["test plan", "CCB approval"], control_function: "preventive", control_activity: "change_management", risk_response: "reduce", likelihood: "low", impact: "high" } },
+  { text: "Approval workflow changes (who approves what) require dual sign-off by the IT Director and Finance Director.",
+    metadata: { authorizer: "Director", hard_authorizer: "Director", control_function: "preventive", control_activity: "change_management", risk_response: "reduce", likelihood: "low", impact: "high" } },
+
+  // === Project development & acquisition (preventive) ===
+  { text: "Software/SaaS acquisitions above $10,000/year require a documented ROI analysis and at least 3 vendor quotes.",
+    metadata: { category: "Software/SaaS", soft_threshold_usd: 10000, required_docs: ["ROI analysis", "3 vendor quotes"], control_function: "preventive", control_activity: "project_development", risk_response: "reduce", likelihood: "low", impact: "high" } },
+  { text: "Consulting engagements above $50,000 require a Statement of Work, defined deliverables, and milestone-based payment terms.",
+    metadata: { category: "Consulting", soft_threshold_usd: 50000, required_docs: ["SOW", "milestone schedule"], control_function: "preventive", control_activity: "project_development", risk_response: "reduce", likelihood: "low", impact: "high" } },
+
+  // === Corrective controls ===
+  { text: "Confirmed non-compliant RED-flagged transactions must be reimbursed from the responsible department's next-quarter discretionary budget within 60 days.",
+    metadata: { control_function: "corrective", control_activity: "independent_checks", risk_response: "reduce", likelihood: "low", impact: "medium" } },
+  { text: "Three or more confirmed personal-expense submissions by the same requester within a rolling 12 months result in immediate corporate-card suspension pending review.",
+    metadata: { control_function: "corrective", control_activity: "authorization", risk_response: "reduce", likelihood: "low", impact: "medium" } },
+
+  // === Vendor / category integrity (preventive) ===
+  { text: "Office Supplies vendors (Staples, Amazon Business, Quill) cannot be charged as Marketing campaigns — flag RED.",
+    metadata: { category: "Office Supplies", control_function: "preventive", control_activity: "documents_records", risk_response: "reduce", likelihood: "medium", impact: "high" } },
   { text: "Utilities expenses must come from a recurring vendor on the approved utilities list (Comcast, PG&E, AT&T, Verizon).",
-    metadata: { category: "Utilities", control_function: "preventive", control_activity: "documents_records", risk_response: "reduce" } },
-  // Anti-circumvention / red-flag triggers (these previously lived in keyword lists)
-  { text: "Any explanation citing 'personal', 'forgot', 'unaware', or 'mistake' should be RED automatically.",
-    metadata: { control_function: "preventive", control_activity: "authorization", risk_response: "reduce" } },
-  { text: "Just-below-threshold expenses (e.g. $4,999 when the approval threshold is $5,000) should be flagged YELLOW.",
-    metadata: { soft_threshold_usd: 5000, control_function: "detective", control_activity: "independent_checks", risk_response: "reduce" } },
-  { text: "Round-number expenses ($1,000 / $5,000 / $10,000 exactly) on Marketing or Consulting categories require additional documentation.",
-    metadata: { control_function: "detective", control_activity: "independent_checks", risk_response: "reduce" } },
+    metadata: { category: "Utilities", control_function: "preventive", control_activity: "documents_records", risk_response: "reduce", likelihood: "medium", impact: "medium" } },
+
+  // === Anti-circumvention / red-flag triggers (preventive + detective) ===
+  { text: "Any explanation citing 'personal', 'forgot', 'unaware', 'didn't realize', or 'mistake' should be RED automatically and requires resubmission with a substantive justification.",
+    metadata: { control_function: "preventive", control_activity: "authorization", risk_response: "avoid", likelihood: "medium", impact: "high" } },
+  { text: "Just-below-threshold expenses (e.g. $4,999 when the approval threshold is $5,000) should be flagged YELLOW and require additional documentation.",
+    metadata: { soft_threshold_usd: 5000, control_function: "detective", control_activity: "independent_checks", risk_response: "reduce", likelihood: "medium", impact: "high" } },
+  { text: "Round-number expenses ($1,000 / $5,000 / $10,000 exactly) on Marketing or Consulting categories require itemized documentation showing what was purchased.",
+    metadata: { control_function: "detective", control_activity: "independent_checks", risk_response: "reduce", likelihood: "medium", impact: "medium" } },
+  { text: "Cash transactions on a corporate card above $100 are prohibited; ATM withdrawals trigger immediate RED.",
+    metadata: { soft_threshold_usd: 100, control_function: "preventive", control_activity: "safeguarding_assets", risk_response: "avoid", likelihood: "low", impact: "high" } },
+  { text: "Petty cash disbursements at or below $50 with a receipt are pre-approved and need no additional review.",
+    metadata: { category: "Petty Cash", hard_threshold_usd: 50, control_function: "preventive", control_activity: "authorization", risk_response: "accept", likelihood: "low", impact: "low" } },
 ];
 
 const _rulesLoadPackBtn = document.getElementById("rules-load-pack");
 if (_rulesLoadPackBtn) {
   _rulesLoadPackBtn.addEventListener("click", () => {
-    const existing = (currentRules.active_rules || []).map(r => (r.text || "").toLowerCase().trim());
-    const toAdd = EXAMPLE_RULE_PACK.filter(p => !existing.includes(p.text.toLowerCase().trim()));
-    if (!toAdd.length) {
-      toast("All example rules are already present.");
+    currentRules.active_rules = currentRules.active_rules || [];
+    // Build an index of existing rules by normalized text so we can enrich,
+    // not just skip, when text already matches a pack entry.
+    const norm = s => (s || "").toLowerCase().trim();
+    const existingByText = {};
+    currentRules.active_rules.forEach((r, idx) => { existingByText[norm(r.text)] = idx; });
+
+    const toAdd = [];
+    let enrichedCount = 0;
+    EXAMPLE_RULE_PACK.forEach(p => {
+      const idx = existingByText[norm(p.text)];
+      if (idx === undefined) {
+        toAdd.push(p);
+        return;
+      }
+      // Existing rule with matching text — fill in any metadata fields
+      // it's missing from the pack entry (don't overwrite explicit values).
+      const existing = currentRules.active_rules[idx];
+      existing.metadata = existing.metadata || {};
+      let added = false;
+      Object.entries(p.metadata || {}).forEach(([k, v]) => {
+        const cur = existing.metadata[k];
+        const empty = cur === undefined || cur === null || cur === "" ||
+                      (Array.isArray(cur) && cur.length === 0);
+        if (empty && v !== undefined && v !== null && v !== "") {
+          existing.metadata[k] = v;
+          added = true;
+        }
+      });
+      if (added) enrichedCount++;
+    });
+
+    if (!toAdd.length && !enrichedCount) {
+      toast("All example rules are already present with full metadata.");
       return;
     }
-    const msg = `Add ${toAdd.length} example rule${toAdd.length === 1 ? "" : "s"} covering authorization, documentation, segregation of duties, safeguarding, and independent checks?\n\n(Duplicates are skipped automatically.)`;
+    let msg = "";
+    if (toAdd.length) msg += `Add ${toAdd.length} new example rule${toAdd.length === 1 ? "" : "s"}`;
+    if (toAdd.length && enrichedCount) msg += ` and `;
+    if (enrichedCount) msg += `enrich metadata on ${enrichedCount} existing rule${enrichedCount === 1 ? "" : "s"}`;
+    msg += `?\n\n(The pack covers all 7 Physical Control Activities, all 3 control functions, and all 4 risk responses — so the derived panels populate fully.)`;
     if (!confirm(msg)) return;
-    currentRules.active_rules = currentRules.active_rules || [];
+
     const now = Math.floor(Date.now() / 1000);
     toAdd.forEach(p => {
       currentRules.active_rules.push({
@@ -3698,7 +3793,13 @@ if (_rulesLoadPackBtn) {
     paintActiveRules();
     paintDerivedPanels();
     markRulesDirty();
-    toast(`Added ${toAdd.length} example rule${toAdd.length === 1 ? "" : "s"}. Click Save to persist.`);
+
+    let resultMsg = "";
+    if (toAdd.length) resultMsg += `Added ${toAdd.length} new rule${toAdd.length === 1 ? "" : "s"}`;
+    if (toAdd.length && enrichedCount) resultMsg += ", ";
+    if (enrichedCount) resultMsg += `enriched ${enrichedCount}`;
+    resultMsg += ". Click Save to persist.";
+    toast(resultMsg);
   });
 }
 
