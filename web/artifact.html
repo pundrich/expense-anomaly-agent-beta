@@ -568,6 +568,83 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
 /* docreqs add-input stays a fixed pill width regardless of grouped-row rules */
 .grouped-row .doc-add-input { width: 140px; }
 
+/* ======== wizard supporting documents ======== */
+.wiz-docs-bar {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: 10px; padding-top: 10px;
+  border-top: 1px solid #e5e7eb;
+  font-size: 12px; color: #374151;
+}
+.wiz-docs-label { color: #6b7280; flex-shrink: 0; }
+.wiz-docs-list {
+  display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  flex: 1; min-width: 0;
+}
+.wiz-docs-empty { color: #9ca3af; font-style: italic; font-size: 11px; }
+.wiz-doc-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #e0f2fe; color: #075985;
+  padding: 3px 4px 3px 10px; border-radius: 14px;
+  font-size: 11px; max-width: 200px;
+}
+.wiz-doc-chip a {
+  color: #0369a1; text-decoration: none;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 140px;
+}
+.wiz-doc-chip a:hover { text-decoration: underline; }
+.wiz-doc-chip .wiz-doc-ok {
+  font-size: 9px; padding: 1px 4px; border-radius: 3px;
+  font-weight: 700; background: #16a34a; color: white;
+}
+.wiz-doc-chip .wiz-doc-skim {
+  font-size: 9px; padding: 1px 4px; border-radius: 3px;
+  font-weight: 700; background: #d97706; color: white;
+}
+.wiz-doc-upload {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border: 1px dashed #1f4e78; border-radius: 14px;
+  font-size: 11px; color: #1f4e78; cursor: pointer; background: white;
+  flex-shrink: 0;
+}
+.wiz-doc-upload:hover { background: #f0f6ff; }
+.wiz-doc-upload input[type="file"] { display: none; }
+.wiz-doc-busy { color: #6b7280; font-size: 11px; font-style: italic; flex-shrink: 0; }
+
+/* ======== auditor docs indicator + modal ======== */
+.aud-docs-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: #e0f2fe; color: #075985;
+  padding: 2px 8px; border-radius: 12px;
+  font-size: 11px; font-weight: 600; cursor: pointer;
+  margin-left: 6px; border: 0; font-family: inherit;
+}
+.aud-docs-pill:hover { background: #bae6fd; }
+.aud-doc-item {
+  border: 1px solid #e5e7eb; border-radius: 6px;
+  padding: 10px 12px; margin-bottom: 8px; background: #f9fafb;
+}
+.aud-doc-item .aud-doc-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; flex-wrap: wrap;
+}
+.aud-doc-item .aud-doc-name {
+  font-weight: 600; color: #111827; font-size: 13px;
+  display: flex; align-items: center; gap: 6px;
+}
+.aud-doc-item .aud-doc-meta {
+  font-size: 11px; color: #6b7280;
+}
+.aud-doc-item .aud-doc-preview {
+  margin-top: 8px; font-size: 12px; color: #374151;
+  white-space: pre-wrap; line-height: 1.5;
+  max-height: 220px; overflow-y: auto;
+  background: white; border: 1px solid #e5e7eb; border-radius: 4px;
+  padding: 8px 10px; font-family: ui-monospace, Menlo, Monaco, monospace;
+}
+.aud-doc-item .aud-doc-noscan {
+  margin-top: 6px; font-size: 11px; color: #9a3412; font-style: italic;
+}
+
 /* ======== rule metadata (expandable per rule) ======== */
 .rule-row .meta-toggle {
   background: none; border: 0; cursor: pointer; color: #6b7280;
@@ -1746,6 +1823,18 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
   </div>
 </div>
 
+<!-- Auditor documents viewer (read-only) -->
+<div class="modal-bg" id="aud-docs-modal">
+  <div class="modal" style="max-width:680px">
+    <h3>Supporting documents</h3>
+    <div id="aud-docs-context" style="font-size:13px;color:#4b5563;margin-bottom:12px"></div>
+    <div id="aud-docs-body" style="max-height:540px;overflow-y:auto"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn" id="aud-docs-close">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- AI auditor wizard (employee) -->
 <div class="wizard-modal" id="wizard-modal">
   <div class="wizard">
@@ -1753,6 +1842,15 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
       <h3>AI Auditor Wizard</h3>
       <p class="sub">A guided interview that classifies your expense without back-and-forth with the audit team.</p>
       <div class="ctx" id="wiz-ctx"></div>
+      <div class="wiz-docs-bar">
+        <span class="wiz-docs-label">Supporting documents:</span>
+        <span id="wiz-docs-list" class="wiz-docs-list"><span class="wiz-docs-empty">none attached yet</span></span>
+        <label class="wiz-doc-upload" title="Attach a receipt, invoice, or PO. PDF text is extracted automatically and shown to the AI.">
+          📎 Attach (PDF/image, &lt;5 MB)
+          <input type="file" id="wiz-doc-input" accept="application/pdf,image/png,image/jpeg,image/heic,image/webp">
+        </label>
+        <span class="wiz-doc-busy" id="wiz-doc-busy" style="display:none">Uploading…</span>
+      </div>
       <div class="wizard-progress"><div class="bar" id="wiz-bar" style="width:0%"></div></div>
     </div>
     <div class="wizard-body" id="wiz-body"></div>
@@ -2824,6 +2922,26 @@ function populateAuditFilters() {
   }
 }
 
+// Cache of documents by transaction_id so we can show a "📎 N" pill on each
+// audit row without firing one fetch per row.
+let auditDocsCache = {};
+async function refreshAuditDocsCache() {
+  try {
+    const r = await authFetch("/api/documents");
+    const j = await r.json();
+    const next = {};
+    (j.documents || []).forEach(d => {
+      const tid = d.transaction_id;
+      if (!tid) return;
+      if (!next[tid]) next[tid] = [];
+      next[tid].push(d);
+    });
+    auditDocsCache = next;
+  } catch (_) {
+    auditDocsCache = {};
+  }
+}
+
 function renderAuditor() {
   populateAuditFilters();
   const rows = filteredAuditRows();
@@ -2834,7 +2952,60 @@ function renderAuditor() {
   const cw = window.cowork;
   const badge = $("#audit-env-badge");
   if (badge) badge.textContent = "Source: mock ERP feed (" + transactions.length + " transactions)";
+  // Refresh docs cache in the background and re-paint the table when done
+  // so the 📎 pills appear without delaying the rest of the dashboard.
+  refreshAuditDocsCache().then(() => {
+    renderAuditTable(filteredAuditRows());
+  });
 }
+
+function openAuditDocsModal(txnId) {
+  const docs = auditDocsCache[txnId] || [];
+  const txn = detection.flagged.find(x => x.transaction_id === txnId);
+  if (txn) {
+    $("#aud-docs-context").innerHTML =
+      `<b>${escapeHtml(txn.vendor)}</b> &middot; ${escapeHtml(txn.category)} &middot; ` +
+      `${fmtMoney(txn.amount)} &middot; ${docs.length} document${docs.length === 1 ? "" : "s"}`;
+  }
+  const body = $("#aud-docs-body");
+  if (!docs.length) {
+    body.innerHTML = `<p style="color:#9ca3af">No supporting documents.</p>`;
+  } else {
+    body.innerHTML = docs.map(d => {
+      const isPdf = (d.mime_type || "").includes("pdf") || (d.filename || "").toLowerCase().endsWith(".pdf");
+      const hasText = d.extracted_text && d.extracted_text.length > 10;
+      const dateStr = d.uploaded_at ? new Date(d.uploaded_at * 1000).toLocaleString() : "";
+      let bodyHtml;
+      if (hasText) {
+        bodyHtml = `<div class="aud-doc-preview">${escapeHtml(d.extracted_text || "")}</div>`;
+      } else if (isPdf) {
+        bodyHtml = `<div class="aud-doc-noscan">PDF had no extractable text (likely a scanned image). Click the filename to view the raw file.</div>`;
+      } else {
+        bodyHtml = `<div class="aud-doc-noscan">Image / non-text file — the AI cannot read its contents. Click the filename to view the raw file.</div>`;
+      }
+      return `<div class="aud-doc-item">
+        <div class="aud-doc-head">
+          <div class="aud-doc-name">
+            <a href="/api/documents/${d.id}/raw" target="_blank" rel="noopener">${escapeHtml(d.filename)}</a>
+            <span class="aud-doc-meta">${escapeHtml(d.mime_type || "")}</span>
+          </div>
+          <div class="aud-doc-meta">uploaded by ${escapeHtml(d.uploaded_by || "?")}${dateStr ? " on " + escapeHtml(dateStr) : ""}</div>
+        </div>
+        ${bodyHtml}
+      </div>`;
+    }).join("");
+  }
+  $("#aud-docs-modal").classList.add("show");
+}
+
+const _audDocsCloseBtn = document.getElementById("aud-docs-close");
+if (_audDocsCloseBtn) _audDocsCloseBtn.addEventListener("click", () => {
+  $("#aud-docs-modal").classList.remove("show");
+});
+const _audDocsModal = document.getElementById("aud-docs-modal");
+if (_audDocsModal) _audDocsModal.addEventListener("click", (e) => {
+  if (e.target === _audDocsModal) _audDocsModal.classList.remove("show");
+});
 
 function renderAuditKpis(rows) {
   const counts = { RED: 0, YELLOW: 0, GREEN: 0, PENDING: 0 };
@@ -3001,6 +3172,10 @@ function renderAuditTable(rows) {
     const cls = effectiveClass(r.transaction_id);
     const flag = cls.flag || "PENDING";
     const exp = effectiveExplanation(r.transaction_id);
+    const docs = auditDocsCache[r.transaction_id] || [];
+    const docsPill = docs.length
+      ? `<button class="aud-docs-pill" data-docs="${r.transaction_id}" title="View ${docs.length} supporting document${docs.length === 1 ? "" : "s"}">📎 ${docs.length}</button>`
+      : "";
     const tr = document.createElement("tr");
     tr.className = "row-flag-" + flag;
     tr.innerHTML = `
@@ -3013,11 +3188,14 @@ function renderAuditTable(rows) {
       <td class="exp">${escapeHtml(exp || "—") }</td>
       <td><span class="badge ${flag}">${flag}</span></td>
       <td class="exp">${escapeHtml(cls.rationale || "")}<br><span style="color:#9ca3af;font-size:11px">${escapeHtml(cls.method || "")}</span></td>
-      <td><button class="btn small ghost" data-override="${r.transaction_id}">Override</button></td>`;
+      <td><button class="btn small ghost" data-override="${r.transaction_id}">Override</button>${docsPill}</td>`;
     tbody.appendChild(tr);
   }
   tbody.querySelectorAll("button[data-override]").forEach(b => {
     b.addEventListener("click", () => openOverrideModal(b.dataset.override));
+  });
+  tbody.querySelectorAll("button[data-docs]").forEach(b => {
+    b.addEventListener("click", () => openAuditDocsModal(b.dataset.docs));
   });
 }
 
@@ -4992,10 +5170,13 @@ document.querySelectorAll(".audit-tab").forEach(tab => {
 let wizState = null;  // { txn, history: [{question, answer, type}], current: {question, type, options} }
 
 function openWizard(f) {
-  wizState = { txn: f, history: [], current: null };
+  wizState = { txn: f, history: [], current: null, docs: [] };
   $("#wiz-ctx").innerHTML =
     `<b>${escapeHtml(f.vendor)}</b> &middot; ${escapeHtml(f.category)} &middot; ${fmtMoney(f.amount)} ` +
     `<span style="color:#9ca3af">(+${f.deviation_pct.toFixed(0)}% above category mean)</span>`;
+  // Load any pre-existing docs for this transaction so the wizard shows them
+  // (e.g. files already uploaded via the employee card before the wizard started).
+  loadWizardDocs();
   $("#wiz-body").innerHTML =
     `<div class="w-turn q">Hi ${escapeHtml(f.requester)}, I'm going to ask a few quick questions to assess this expense. Click <b>Start</b> when you're ready.</div>`;
   // Reset any post-final UI from a previous run.
@@ -5032,6 +5213,81 @@ function closeWizard() {
 }
 
 $("#wiz-cancel").addEventListener("click", closeWizard);
+
+// ---- wizard supporting documents -------------------------------------
+async function loadWizardDocs() {
+  if (!wizState || !wizState.txn) return;
+  try {
+    const r = await authFetch("/api/documents?transaction_id=" + encodeURIComponent(wizState.txn.transaction_id || wizState.txn.id));
+    const j = await r.json();
+    wizState.docs = (j.documents || j || []).filter(d => d.transaction_id === (wizState.txn.transaction_id || wizState.txn.id));
+  } catch (_) {
+    wizState.docs = [];
+  }
+  renderWizardDocs();
+}
+
+function renderWizardDocs() {
+  const host = $("#wiz-docs-list");
+  if (!host) return;
+  const docs = (wizState && wizState.docs) || [];
+  if (!docs.length) {
+    host.innerHTML = `<span class="wiz-docs-empty">none attached yet</span>`;
+    return;
+  }
+  host.innerHTML = docs.map(d => {
+    const isPdf = (d.mime_type || "").includes("pdf") || (d.filename || "").toLowerCase().endsWith(".pdf");
+    const hasText = isPdf && d.extracted_text && d.extracted_text.length > 10;
+    const tag = hasText
+      ? `<span class="wiz-doc-ok" title="Text extracted and shown to the AI">AI ✓</span>`
+      : `<span class="wiz-doc-skim" title="Image or scan — the AI will see the filename but not the contents">image</span>`;
+    return `<span class="wiz-doc-chip">
+      <a href="/api/documents/${d.id}/raw" target="_blank" rel="noopener" title="${escapeHtml(d.filename)}">${escapeHtml(d.filename)}</a>
+      ${tag}
+    </span>`;
+  }).join("");
+}
+
+$("#wiz-doc-input").addEventListener("change", async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  if (!wizState || !wizState.txn) { toast("No active wizard session."); e.target.value = ""; return; }
+  if (file.size > 5 * 1024 * 1024) { toast("File too large (max 5 MB)."); e.target.value = ""; return; }
+  $("#wiz-doc-busy").style.display = "inline-block";
+  try {
+    const b64 = await new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => {
+        const result = String(fr.result || "");
+        const comma = result.indexOf(",");
+        resolve(comma >= 0 ? result.slice(comma + 1) : result);
+      };
+      fr.onerror = () => reject(new Error("file read failed"));
+      fr.readAsDataURL(file);
+    });
+    const r = await authFetch("/api/documents", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        transaction_id: wizState.txn.transaction_id || wizState.txn.id,
+        filename: file.name,
+        mime_type: file.type || "application/octet-stream",
+        content_b64: b64,
+      }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+    toast(j.extracted_text_preview
+      ? `Uploaded ${file.name} — text extracted and will be shown to the AI.`
+      : `Uploaded ${file.name} — the AI cannot read image contents; describe in your answer if relevant.`);
+    await loadWizardDocs();
+  } catch (err) {
+    toast("Upload failed: " + err.message);
+  } finally {
+    $("#wiz-doc-busy").style.display = "none";
+    e.target.value = "";
+  }
+});
 
 $("#wiz-send").addEventListener("click", async () => {
   if (!wizState) return;

@@ -1085,7 +1085,38 @@ Reply with ONLY a JSON object. Omit any field you cannot infer. Allowed fields:
         return {}
 
 
-def _wizard_system_prompt(txn: dict, rules: dict, max_turns: int, turns_used: int, force_conclude: bool) -> str:
+def _format_docs_block(docs: list[dict]) -> str:
+    """Render supporting documents as a prompt section. PDF text is included
+    verbatim (capped per doc) so the LLM can verify the requester's claims.
+    Images get a note since gpt-oss-120b is text-only."""
+    if not docs:
+        return ""
+    PER_DOC_CHARS = 2200   # ~550 tokens per doc
+    MAX_DOCS = 4
+    parts = []
+    for d in docs[:MAX_DOCS]:
+        fname = d.get("filename", "(unnamed)")
+        mime = d.get("mime_type", "")
+        text = (d.get("extracted_text") or "").strip()
+        if text:
+            snippet = text[:PER_DOC_CHARS]
+            if len(text) > PER_DOC_CHARS:
+                snippet += "\n[... truncated ...]"
+            parts.append(f"--- Document: {fname} ({mime}) ---\n{snippet}")
+        else:
+            note = "image or scan; this AI is text-only and cannot read its contents"
+            parts.append(f"--- Document: {fname} ({mime}) — {note} ---")
+    extra = f"\n[{len(docs) - MAX_DOCS} additional document(s) attached but omitted to keep the prompt short.]\n" if len(docs) > MAX_DOCS else ""
+    return (
+        "\n\nSupporting documents the requester attached (treat as evidence, "
+        "but verify claims by asking pointed follow-up questions if the doc is unreadable, "
+        "ambiguous, or could be doctored):\n\n"
+        + "\n\n".join(parts)
+        + extra
+    )
+
+
+def _wizard_system_prompt(txn: dict, rules: dict, max_turns: int, turns_used: int, force_conclude: bool, docs: list[dict] | None = None) -> str:
     caps_lines = "\n".join(
         f"  - {c.get('category')}: soft cap ${c.get('soft_cap')}, hard cap ${c.get('hard_cap')}"
         for c in (rules.get("category_caps") or [])
@@ -1110,7 +1141,7 @@ Company policy:
 {policy}
 
 Per-category caps:
-{caps_lines}
+{caps_lines}{_format_docs_block(docs or [])}
 
 Rules of the interview:
 1. Maximum {max_turns} questions. You have used {turns_used}.
@@ -1122,6 +1153,9 @@ with action=conclude and needs_human=true (do NOT guess).
 5. If the user has clearly satisfied the policy, conclude GREEN. If clearly violated, conclude RED. \
 If partial / unverified, YELLOW.
 6. NEVER hallucinate that approvals exist. Confirmation requires the user to say so explicitly.
+7. When supporting documents are attached and READABLE, use their contents as primary evidence \
+(amounts, vendor names, PO numbers, dates). When attached but UNREADABLE (images), tell the requester \
+what specific detail to confirm in writing.
 """
     if force_conclude:
         base += "\nIMPORTANT: You have reached the question cap. You MUST set action=\"conclude\" this turn.\n"
@@ -1916,7 +1950,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
             turns_used = len(history)
             force_conclude = turns_used >= max_turns
 
-            sys_prompt = _wizard_system_prompt(txn, rules, max_turns, turns_used, force_conclude)
+            # Look up supporting documents so the LLM can see their extracted
+            # text as evidence alongside the rules and the interview history.
+            txn_id = txn.get("transaction_id") or txn.get("id")
+            docs = db_list_documents(transaction_id=txn_id) if txn_id else []
+
+            sys_prompt = _wizard_system_prompt(txn, rules, max_turns, turns_used, force_conclude, docs)
             user_prompt = _wizard_user_prompt(history)
 
             client = get_client()
