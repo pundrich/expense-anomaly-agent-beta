@@ -678,6 +678,17 @@ def db_save_document(transaction_id: str, uploaded_by: str, filename: str,
         return new_id
 
 
+def db_delete_documents_for_transaction(transaction_id: str) -> int:
+    """Delete every document attached to one transaction (used by the
+    "Clear flag" button so the next reclassification starts from scratch)."""
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM documents WHERE transaction_id = %s", (transaction_id,))
+            n = cur.rowcount
+        conn.commit()
+        return n
+
+
 def db_list_documents(transaction_id: str | None = None) -> list[dict]:
     with get_conn() as conn:
         with conn.cursor() as cur:
@@ -1563,11 +1574,29 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         path = urlparse(self.path).path
-        if not self._require_admin():
+        if not self._require_auth():
             return
         if path.startswith("/api/users/"):
+            if not self._require_admin():
+                return
             username = path[len("/api/users/"):]
             self._delete_user(username)
+        elif path == "/api/documents":
+            # Bulk-delete every document attached to a transaction. Used by the
+            # Clear-flag button so a re-run of the wizard starts clean. Any
+            # authenticated user can do this for their own card.
+            from urllib.parse import parse_qs
+            q = parse_qs(urlparse(self.path).query)
+            txn = (q.get("transaction_id", [None]) or [None])[0]
+            if not txn:
+                return self._json(400, {"error": "transaction_id is required"})
+            try:
+                count = db_delete_documents_for_transaction(txn)
+                actor = (session_info(self._bearer_token()) or {}).get("username")
+                log_event("documents_clear", actor, txn, {"count": count})
+                self._json(200, {"deleted": count})
+            except Exception as e:
+                self._json(500, {"error": str(e)})
         else:
             self.send_error(404)
 

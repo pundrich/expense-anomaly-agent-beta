@@ -2266,11 +2266,20 @@ function buildCard(f) {
     const clear = document.createElement("button");
     clear.className = "btn small ghost";
     clear.textContent = "Clear flag";
-    clear.addEventListener("click", () => {
+    clear.addEventListener("click", async () => {
+      // Reset the local classification AND the explanation (which holds the
+      // wizard transcript referencing the uploads we're about to delete).
       const cur = state[f.transaction_id] || {};
-      delete cur.flag; delete cur.rationale; delete cur.method;
+      delete cur.flag; delete cur.rationale; delete cur.method; delete cur.explanation;
       state[f.transaction_id] = cur;
       saveState(state);
+      // Best-effort: delete server-side documents for this transaction so
+      // a re-run starts from a clean state. We don't block the UI on this.
+      try {
+        await authFetch("/api/documents?transaction_id=" + encodeURIComponent(f.transaction_id), {
+          method: "DELETE",
+        });
+      } catch (_) { /* keep the local clear regardless */ }
       renderAll();
     });
     actions.appendChild(clear);
