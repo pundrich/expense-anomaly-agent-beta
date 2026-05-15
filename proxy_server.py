@@ -87,10 +87,12 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash        TEXT NOT NULL,
     is_admin             BOOLEAN NOT NULL DEFAULT FALSE,
     is_researcher        BOOLEAN NOT NULL DEFAULT FALSE,
+    is_auditor           BOOLEAN NOT NULL DEFAULT FALSE,
     created_at           BIGINT NOT NULL,
     password_changed_at  BIGINT
 );
 ALTER TABLE users ADD COLUMN IF NOT EXISTS is_researcher BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_auditor    BOOLEAN NOT NULL DEFAULT FALSE;
 """
 
 RULES_SCHEMA = """
@@ -182,7 +184,7 @@ def db_load_users() -> list[dict]:
     with get_conn() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT username, salt, password_hash AS hash, is_admin, is_researcher, "
+                "SELECT username, salt, password_hash AS hash, is_admin, is_researcher, is_auditor, "
                 "created_at, password_changed_at FROM users ORDER BY username"
             )
             return [dict(r) for r in cur.fetchall()]
@@ -203,9 +205,11 @@ def db_replace_users(users: list[dict]) -> None:
             for u in users:
                 cur.execute(
                     "INSERT INTO users (username, salt, password_hash, is_admin, is_researcher, "
-                    "created_at, password_changed_at) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                    "is_auditor, created_at, password_changed_at) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
                     (u["username"], u["salt"], u["hash"],
                      bool(u.get("is_admin")), bool(u.get("is_researcher")),
+                     bool(u.get("is_auditor")),
                      int(u.get("created_at") or time.time()),
                      u.get("password_changed_at")),
                 )
@@ -245,7 +249,8 @@ def _verify_password(password: str, salt: str, expected_hash: str) -> bool:
     return hmac.compare_digest(_hash_password(password, salt), expected_hash)
 
 
-def _new_user_record(username: str, password: str, is_admin: bool, is_researcher: bool = False) -> dict:
+def _new_user_record(username: str, password: str, is_admin: bool,
+                     is_researcher: bool = False, is_auditor: bool = False) -> dict:
     salt = secrets.token_hex(16)
     return {
         "username": username,
@@ -253,6 +258,7 @@ def _new_user_record(username: str, password: str, is_admin: bool, is_researcher
         "hash": _hash_password(password, salt),
         "is_admin": bool(is_admin),
         "is_researcher": bool(is_researcher),
+        "is_auditor": bool(is_auditor),
         "created_at": int(time.time()),
         "password_changed_at": None,
     }
@@ -295,13 +301,15 @@ def any_default_password_still_used(rec: dict) -> bool:
     return False
 
 
-def issue_session(username: str, is_admin: bool, is_researcher: bool = False) -> tuple[str, float]:
+def issue_session(username: str, is_admin: bool, is_researcher: bool = False,
+                  is_auditor: bool = False) -> tuple[str, float]:
     token = secrets.token_urlsafe(32)
     expires_at = time.time() + SESSION_TTL_SECONDS
     _sessions[token] = {
         "username": username,
         "is_admin": bool(is_admin),
         "is_researcher": bool(is_researcher),
+        "is_auditor": bool(is_auditor),
         "expires_at": expires_at,
     }
     return token, expires_at
@@ -1301,6 +1309,16 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self._json(403, {"error": "researcher privileges required"})
         return False
 
+    def _require_admin_or_auditor(self) -> bool:
+        """Admin OR auditor passes. Used by rule-management endpoints —
+        an auditor can edit rules, run the rule wizard, and use Deep AI
+        analysis without needing full user-management (admin) privileges."""
+        s = session_info(self._bearer_token())
+        if s and (s.get("is_admin") or s.get("is_auditor")):
+            return True
+        self._json(403, {"error": "admin or auditor privileges required"})
+        return False
+
     # ---- routing -----------------------------------------------
 
     def do_GET(self):
@@ -1319,6 +1337,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 payload["username"] = s["username"]
                 payload["is_admin"] = s["is_admin"]
                 payload["is_researcher"] = s.get("is_researcher", False)
+                payload["is_auditor"] = s.get("is_auditor", False)
                 payload["expires_at"] = s["expires_at"]
             try:
                 rec = load_auth()
@@ -1336,6 +1355,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 "username": u["username"],
                 "is_admin": bool(u.get("is_admin")),
                 "is_researcher": bool(u.get("is_researcher")),
+                "is_auditor": bool(u.get("is_auditor")),
                 "created_at": u.get("created_at"),
                 "password_changed_at": u.get("password_changed_at"),
             } for u in rec.get("users", [])]
@@ -1461,7 +1481,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if self._require_researcher():
                 self._create_treatment()
         elif path == "/api/wizard-rule":
-            if self._require_admin():
+            if self._require_admin_or_auditor():
                 self._wizard_rule()
         elif path == "/api/rules/extract-metadata":
             # Run LLM-driven metadata extraction for one rule's text.
@@ -1487,8 +1507,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif path == "/api/rules/analyze-gaps":
             # LLM-driven narrative critique of the full ruleset.
             # Used by the auditor's "Deep AI analysis" button in the
-            # Coverage Gaps panel. Admin-only because it consumes LLM tokens.
-            if self._require_admin():
+            # Coverage Gaps panel. Admin or auditor — both can use it.
+            if self._require_admin_or_auditor():
                 self._analyze_gaps()
         elif path == "/api/seed-mock-data":
             if self._require_researcher():
@@ -1509,7 +1529,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif path == "/api/rules/apply-additions":
             # Auditor wizard's "accept proposal" applies the additions to the
             # current ruleset (kept separate from /api/rules to be explicit).
-            if self._require_admin():
+            if self._require_admin_or_auditor():
                 try:
                     length = int(self.headers.get("Content-Length", "0"))
                     add = json.loads(self.rfile.read(length))
@@ -1572,7 +1592,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return self._json(401, {"error": "invalid username or password"})
             reset_failures(ip)
             token, expires_at = issue_session(
-                user["username"], user.get("is_admin", False), user.get("is_researcher", False)
+                user["username"], user.get("is_admin", False),
+                user.get("is_researcher", False), user.get("is_auditor", False),
             )
             return self._json(200, {
                 "token": token,
@@ -1580,6 +1601,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 "username": user["username"],
                 "is_admin": bool(user.get("is_admin")),
                 "is_researcher": bool(user.get("is_researcher")),
+                "is_auditor": bool(user.get("is_auditor")),
                 "default_password_in_use": user.get("password_changed_at") is None and user.get("is_admin", False),
             })
         except Exception as e:
@@ -1628,6 +1650,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             password = (data.get("password") or "").strip()
             is_admin = bool(data.get("is_admin"))
             is_researcher = bool(data.get("is_researcher"))
+            is_auditor = bool(data.get("is_auditor"))
             if not username or not password:
                 return self._json(400, {"error": "username and password are required"})
             if len(username) > 60 or not all(c.isalnum() or c in "._-" for c in username):
@@ -1637,7 +1660,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             rec = load_auth()
             if find_user(rec, username):
                 return self._json(409, {"error": f"user '{username}' already exists"})
-            new_user = _new_user_record(username, password, is_admin, is_researcher)
+            new_user = _new_user_record(username, password, is_admin, is_researcher, is_auditor)
             new_user["password_changed_at"] = int(time.time())
             rec["users"].append(new_user)
             save_auth(rec)
@@ -1645,6 +1668,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 "username": new_user["username"],
                 "is_admin": new_user["is_admin"],
                 "is_researcher": new_user["is_researcher"],
+                "is_auditor": new_user["is_auditor"],
                 "created_at": new_user["created_at"],
             })
         except Exception as e:

@@ -1053,7 +1053,7 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
             <li>Get an immediate AI assessment of your justification</li>
           </ul>
         </button>
-        <button class="role-tile auditor" data-role="auditor">
+        <button class="role-tile auditor admin-or-auditor" data-role="auditor" style="display:none">
           <div class="icon">&#128270;</div>
           <h3>Internal auditor</h3>
           <p>Review the full population of flagged transactions across the organization.</p>
@@ -1698,7 +1698,7 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
 
     <div style="border-top:1px solid #e5e7eb; padding-top:14px">
       <h4 style="margin:0 0 8px; font-size:13px; color:#111827">Add a user</h4>
-      <div style="display:grid; grid-template-columns:1fr 1fr auto auto; gap:8px; align-items:end">
+      <div style="display:grid; grid-template-columns:1fr 1fr auto auto auto; gap:8px; align-items:end">
         <div class="field" style="margin:0">
           <label>Username</label>
           <input id="nu-name" type="text" autocomplete="off" />
@@ -1708,10 +1708,19 @@ hr { border: 0; border-top: 1px solid #e5e7eb; margin: 14px 0; }
           <input id="nu-pw" type="password" autocomplete="new-password" />
         </div>
         <div class="field" style="margin:0">
-          <label style="white-space:nowrap"><input id="nu-admin" type="checkbox" /> Admin</label>
+          <label style="white-space:nowrap" title="Can manage users and edit business rules. Implies Auditor.">
+            <input id="nu-admin" type="checkbox" /> Admin
+          </label>
         </div>
         <div class="field" style="margin:0">
-          <label style="white-space:nowrap"><input id="nu-researcher" type="checkbox" /> Researcher</label>
+          <label style="white-space:nowrap" title="Can edit business rules, override classifications, and use the auditor dashboard — but cannot manage other users.">
+            <input id="nu-auditor" type="checkbox" /> Auditor
+          </label>
+        </div>
+        <div class="field" style="margin:0">
+          <label style="white-space:nowrap" title="Can access the Researcher dashboard (algorithms, treatments, analytics).">
+            <input id="nu-researcher" type="checkbox" /> Researcher
+          </label>
         </div>
       </div>
       <div class="err" id="nu-err" style="display:none;background:#fee2e2;border:1px solid #fecaca;color:#991b1b;padding:8px 10px;border-radius:6px;font-size:13px;margin-top:10px"></div>
@@ -2587,9 +2596,11 @@ async function doLogin(username, password) {
     username: j.username,
     is_admin: !!j.is_admin,
     is_researcher: !!j.is_researcher,
+    is_auditor: !!j.is_auditor,
   };
   paintUserBars();
   if (typeof paintResearcherTile === "function") paintResearcherTile();
+  if (typeof paintAuditorTile === "function") paintAuditorTile();
   return j;
 }
 
@@ -2726,9 +2737,14 @@ async function refreshUsersTable() {
       const lastChange = u.password_changed_at
         ? new Date(u.password_changed_at * 1000).toLocaleDateString()
         : '<span style="color:#b45309">never (default)</span>';
+      const roleBadges = [];
+      if (u.is_admin) roleBadges.push('<span class="badge YELLOW" title="Admin: can manage users + edit rules">Admin</span>');
+      if (u.is_auditor && !u.is_admin) roleBadges.push('<span class="badge GREEN" title="Auditor: can edit rules and override classifications">Auditor</span>');
+      if (u.is_researcher) roleBadges.push('<span class="badge" style="background:#ede9fe;color:#5b21b6" title="Researcher: analytics + experiments">Researcher</span>');
+      const roleHtml = roleBadges.length ? roleBadges.join(' ') : 'User';
       tr.innerHTML = `
         <td style="padding:8px"><b>${escapeHtml(u.username)}</b>${isMe ? ' <span style="color:#6b7280;font-size:11px">(you)</span>' : ''}</td>
-        <td style="padding:8px">${u.is_admin ? '<span class="badge YELLOW">Admin</span>' : 'User'}</td>
+        <td style="padding:8px">${roleHtml}</td>
         <td style="padding:8px;color:#4b5563">${lastChange}</td>
         <td style="padding:8px;text-align:right;white-space:nowrap">
           <button class="btn small ghost" data-resetpw="${escapeHtml(u.username)}">Reset password</button>
@@ -2838,8 +2854,17 @@ function setView(name) {
 
 function applyHashRoute() {
   const h = (location.hash || "").replace(/^#\/?/, "");
-  if (h === "employee" || h === "auditor" || h === "role") {
+  if (h === "employee" || h === "role") {
     setView(h);
+    return;
+  }
+  if (h === "auditor") {
+    if (currentUser && (currentUser.is_admin || currentUser.is_auditor)) {
+      setView("auditor");
+    } else {
+      // not authorised to view auditor dashboard - send back to role picker
+      location.hash = "#/role";
+    }
     return;
   }
   if (h === "researcher") {
@@ -5685,6 +5710,15 @@ function paintResearcherTile() {
   });
 }
 
+// Same idea for the Auditor tile: only admins and auditors see it. Regular
+// employees no longer find a path into the auditor dashboard from the role picker.
+function paintAuditorTile() {
+  const visible = currentUser && (currentUser.is_admin || currentUser.is_auditor);
+  document.querySelectorAll(".admin-or-auditor").forEach(el => {
+    el.style.display = visible ? "" : "none";
+  });
+}
+
 document.querySelectorAll(".research-tab").forEach(tab => {
   tab.addEventListener("click", () => {
     document.querySelectorAll(".research-tab").forEach(t => t.classList.remove("active"));
@@ -5973,6 +6007,7 @@ document.getElementById("nu-create").addEventListener("click", function(){
     const p = document.getElementById("nu-pw").value;
     const a = document.getElementById("nu-admin").checked;
     const rsr = document.getElementById("nu-researcher") ? document.getElementById("nu-researcher").checked : false;
+    const aud = document.getElementById("nu-auditor") ? document.getElementById("nu-auditor").checked : false;
     const err = document.getElementById("nu-err");
     err.style.display = "none";
     const fail = (m) => { err.textContent = m; err.style.display = "block"; };
@@ -5982,7 +6017,7 @@ document.getElementById("nu-create").addEventListener("click", function(){
       const r = await authFetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: u, password: p, is_admin: a, is_researcher: rsr }),
+        body: JSON.stringify({ username: u, password: p, is_admin: a, is_researcher: rsr, is_auditor: aud }),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) return fail(j.error || "Could not create user.");
@@ -5990,6 +6025,7 @@ document.getElementById("nu-create").addEventListener("click", function(){
       document.getElementById("nu-pw").value = "";
       document.getElementById("nu-admin").checked = false;
       if (document.getElementById("nu-researcher")) document.getElementById("nu-researcher").checked = false;
+      if (document.getElementById("nu-auditor")) document.getElementById("nu-auditor").checked = false;
       await refreshUsersTable();
       toast("User '" + u + "' added.");
     } catch (e) {
@@ -6529,9 +6565,11 @@ document.getElementById("rw-accept").addEventListener("click", async () => {
     username: status.username,
     is_admin: status.is_admin,
     is_researcher: status.is_researcher || false,
+    is_auditor: status.is_auditor || false,
   };
   paintUserBars();
   paintResearcherTile();
+  paintAuditorTile();
   if (status.default_password_in_use) showDefaultPwBanner(true);
   await Promise.all([loadRules(), loadAlgorithmConfig()]);
   // Re-run detection with the loaded algorithm config
